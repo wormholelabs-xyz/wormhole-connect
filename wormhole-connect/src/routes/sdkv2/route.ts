@@ -320,9 +320,6 @@ export class SDKv2Route<N extends Network> extends RouteAbstract {
     if (!fromChainV1 || !toChainV1)
       throw new Error('source and destination chains are required');
 
-    console.log('getting quote', this);
-    console.trace();
-
     const wh = await this.getWh(this.network);
 
     const req = await this.toRequest(wh, {
@@ -332,15 +329,11 @@ export class SDKv2Route<N extends Network> extends RouteAbstract {
       dstToken: destToken,
     });
 
-    console.log(req);
-
     const route = new this.rc(wh, req);
 
     const validationResult = await route.validate({
       amount: amountIn.toString(),
     });
-
-    console.log(validationResult);
 
     if (!validationResult.valid) {
       throw validationResult.error;
@@ -373,26 +366,7 @@ export class SDKv2Route<N extends Network> extends RouteAbstract {
     );
   }
 
-  // Unused method, don't bother implementing
-  public computeSendAmount(
-    receiveAmount: number | undefined,
-    routeOptions: any,
-  ): Promise<number> {
-    throw new Error('Method not implemented.');
-  }
-
-  public validate(
-    token: TokenIdV1 | 'native',
-    amount: string,
-    sendingChain: ChainName | ChainId,
-    senderAddress: string,
-    recipientChain: ChainName | ChainId,
-    recipientAddress: string,
-    routeOptions: any,
-  ): Promise<boolean> {
-    throw new Error('Method not implemented.');
-  }
-
+  // TODO do we really need this...? the wallet will tell the user this.
   public estimateSendGas(
     token: TokenIdV1 | 'native',
     amount: string,
@@ -405,6 +379,7 @@ export class SDKv2Route<N extends Network> extends RouteAbstract {
     throw new Error('Method not implemented.');
   }
 
+  // TODO do we really need this...? the wallet will tell the user this.
   public estimateClaimGas(
     destChain: ChainName | ChainId,
     signedMessage?: SignedMessage | undefined,

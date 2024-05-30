@@ -365,37 +365,6 @@ export class Operator {
     );
   }
 
-  async computeSendAmount(
-    route: Route,
-    receiveAmount: number | undefined,
-    routeOptions: any,
-  ): Promise<number> {
-    const r = this.getRoute(route);
-    return await r.computeSendAmount(receiveAmount, routeOptions);
-  }
-
-  async validate(
-    route: Route,
-    token: TokenId | 'native',
-    amount: string,
-    sendingChain: ChainName | ChainId,
-    senderAddress: string,
-    recipientChain: ChainName | ChainId,
-    recipientAddress: string,
-    routeOptions: any,
-  ): Promise<boolean> {
-    const r = this.getRoute(route);
-    return await r.validate(
-      token,
-      amount,
-      sendingChain,
-      senderAddress,
-      recipientChain,
-      recipientAddress,
-      routeOptions,
-    );
-  }
-
   async estimateSendGas(
     route: Route,
     token: TokenId | 'native',

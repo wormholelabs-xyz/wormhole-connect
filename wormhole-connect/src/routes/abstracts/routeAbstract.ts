@@ -92,23 +92,6 @@ export abstract class RouteAbstract {
     routeOptions: any,
   ): Promise<number>;
 
-  // Calculate the amount a user would need to send in order to receive a certain amount
-  public abstract computeSendAmount(
-    receiveAmount: number | undefined,
-    routeOptions: any,
-  ): Promise<number>;
-
-  // Validate a transfer before sending via the chosen route
-  public abstract validate(
-    token: TokenId | 'native',
-    amount: string,
-    sendingChain: ChainName | ChainId,
-    senderAddress: string,
-    recipientChain: ChainName | ChainId,
-    recipientAddress: string,
-    routeOptions: any,
-  ): Promise<boolean>;
-
   // estimate send gas fees
   public abstract estimateSendGas(
     token: TokenId | 'native',
