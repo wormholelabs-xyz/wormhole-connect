@@ -2,6 +2,7 @@
   "name": "@wormhole-foundation/wormhole-connect-sdk",
   "version": "0.1.0-beta.0",
   "private": true,
+  "type": "module",
   "main": "./dist/cjs/src/index.js",
   "exports": {
     ".": {
@@ -19,6 +20,10 @@
     "@cosmjs/tendermint-rpc": "^0.31.3",
     "@mysten/sui.js": "^0.32.2",
     "@nomad-xyz/multi-provider": "^1.1.0",
+    "@rollup/plugin-commonjs": "^25.0.8",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@solana/spl-token": "^0.3.7",
     "@solana/web3.js": "^1.73.0",
     "aptos": "1.5.0",
@@ -40,6 +45,7 @@
     "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.6.0",
     "ethers": "^5.7.2",
+    "rollup": "^4.18.0",
     "typedoc": "^0.25.0",
     "typescript": "^5.3.3"
   },

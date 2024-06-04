@@ -2,13 +2,12 @@
   "exclude": ["dist", "node_modules", "tests", "coverage"],
   "include": ["src/**/*.ts", "src/**/*.json"],
   "compilerOptions": {
-    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["es2021"],
-    "module": "commonjs",
+    "module": "ES6",
     "moduleResolution": "node",
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
@@ -24,6 +23,6 @@
     "strict": true,
     "baseUrl": "./src",
     "skipLibCheck": true,
-    "outDir": "dist/cjs"
+    "outDir": "dist/esm"
   }
 }
