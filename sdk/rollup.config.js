@@ -5,10 +5,16 @@ import json from '@rollup/plugin-json';
 
 export default {
   input: 'src/index.ts',
-  output: {
-    file: 'dist/sdkv1.bundle.js',
-    format: 'cjs',
-  },
+  output: [
+    {
+      file: 'dist/sdkv1.bundle.js',
+      format: 'cjs',
+    },
+    {
+      file: 'dist/esm/sdkv1.bundle.js',
+      format: 'esm',
+    },
+  ],
   plugins: [
     resolve(),
     commonjs(),
@@ -17,6 +23,9 @@ export default {
       tsconfig: './tsconfig.esm.json',
       target: 'ESNext',
       module: 'ESNext',
+      declaration: true,
+      declarationDir: 'dist',
+      rootDir: 'src',
     }),
   ],
 };
