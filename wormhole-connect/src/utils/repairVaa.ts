@@ -1,9 +1,3 @@
-import {
-  parseVaa,
-  keccak256,
-  type ParsedVaa,
-  type GuardianSignature,
-} from '@certusone/wormhole-sdk';
 import type { GuardianSetData } from 'config/types';
 import { ethers } from 'ethers';
 
@@ -39,6 +33,15 @@ const numToBytes = (num: number, size: number): Uint8Array =>
  *
  * NOTE: copied since original function does not normalize the public keys
  **/
+
+export function repairVaa() {
+  throw new Error('Needs to be implemented with SDKv2');
+}
+
+/*
+ *
+ * TODO SDKV2 port examples/src/repairVaa.ts from sdkv2
+
 export function repairVaa(
   vaaBytes: Uint8Array,
   guardianSetData: GuardianSetData,
@@ -67,7 +70,7 @@ export function repairVaa(
           vaaGuardianPublicKey,
         );
       } catch (_) {
-        /* empty */
+        // empty
       }
     },
   );
@@ -103,3 +106,4 @@ export function repairVaa(
   const vaaBody = vaaBytes.subarray(offset);
   return Buffer.concat([vaaHeader, vaaBody]);
 }
+*/

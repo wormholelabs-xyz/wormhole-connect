@@ -1,4 +1,4 @@
-import { Network as Environment } from '@certusone/wormhole-sdk';
+import { Network } from './types';
 import { Domain, MultiProvider } from '@nomad-xyz/multi-provider';
 import { BigNumber } from 'ethers';
 
@@ -60,7 +60,7 @@ export class WormholeContext extends MultiProvider<Domain> {
   readonly conf: WormholeConfig;
 
   constructor(
-    env: Environment,
+    env: Network,
     conf?: WormholeConfig,
     foreignAssetCache?: ForeignAssetCache,
   ) {
@@ -557,10 +557,10 @@ export class WormholeContext extends MultiProvider<Domain> {
    * @param environment 'MAINNET' or 'TESTNET'
    * @returns A Wormhole Config
    */
-  static getConfig(env: Environment): WormholeConfig {
-    return env === 'MAINNET'
+  static getConfig(env: Network): WormholeConfig {
+    return env === 'mainnet'
       ? MAINNET_CONFIG
-      : env === 'DEVNET'
+      : env === 'devnet'
       ? DEVNET_CONFIG
       : TESTNET_CONFIG;
   }

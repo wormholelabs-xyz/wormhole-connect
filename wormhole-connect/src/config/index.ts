@@ -5,7 +5,6 @@ import {
   ForeignAssetCache,
   ChainResourceMap,
 } from '@wormhole-foundation/wormhole-connect-sdk';
-import { Network as NetworkLegacy } from '@certusone/wormhole-sdk'; // TODO remove
 import MAINNET from './mainnet';
 import TESTNET from './testnet';
 import DEVNET from './devnet';
@@ -38,16 +37,14 @@ export function buildConfig(
   // Connect uses lowercase like "mainnet"
   // SDKv2 uses capitalized like "Mainnet"
   // It's a mess
-  const networkLegacy = network.toUpperCase() as NetworkLegacy;
-
-  const networkData = { MAINNET, DEVNET, TESTNET }[networkLegacy]!;
+  const networkData = { MAINNET, DEVNET, TESTNET }[network.toUpperCase()]!;
 
   const tokens = mergeCustomTokensConfig(
     networkData.tokens,
     customConfig?.tokensConfig,
   );
 
-  const sdkConfig = WormholeContext.getConfig(networkLegacy);
+  const sdkConfig = WormholeContext.getConfig(network);
 
   const rpcs = Object.assign(
     {},
@@ -56,7 +53,7 @@ export function buildConfig(
     customConfig?.rpcs,
   );
 
-  const wh = getWormholeContext(networkLegacy, sdkConfig, tokens, rpcs);
+  const wh = getWormholeContext(network, sdkConfig, tokens, rpcs);
 
   if (customConfig?.bridgeDefaults) {
     validateDefaults(customConfig.bridgeDefaults, networkData.chains, tokens);
@@ -72,7 +69,6 @@ export function buildConfig(
     // TODO remove either env or network from this
     // some code uses lowercase, some uppercase... :(
     network,
-    networkLegacy,
     isMainnet: network === 'mainnet',
     // External resources
     rpcs,
@@ -171,7 +167,7 @@ const config = buildConfig();
 export default config;
 
 export function getWormholeContext(
-  network: NetworkLegacy,
+  network: Network,
   sdkConfig: WormholeConfig,
   tokens: TokensConfig,
   rpcs: ChainResourceMap,
@@ -203,14 +199,13 @@ export function getWormholeContext(
 }
 
 export function getDefaultWormholeContext(network: Network): WormholeContext {
-  const networkLegacy: NetworkLegacy = network.toUpperCase() as NetworkLegacy;
-  const sdkConfig = WormholeContext.getConfig(networkLegacy);
-  const networkData = { MAINNET, DEVNET, TESTNET }[networkLegacy]!;
+  const sdkConfig = WormholeContext.getConfig(network);
+  const networkData = { MAINNET, DEVNET, TESTNET }[network.toUpperCase()]!;
 
   const { tokens } = networkData;
   const rpcs = Object.assign({}, sdkConfig.rpcs, networkData.rpcs);
 
-  return getWormholeContext(networkLegacy, sdkConfig, tokens, rpcs);
+  return getWormholeContext(network, sdkConfig, tokens, rpcs);
 }
 
 // setConfig can be called afterwards to override the default config with integrator-provided config

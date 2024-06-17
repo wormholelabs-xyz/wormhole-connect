@@ -1,4 +1,3 @@
-import { Network as NetworkLegacy } from '@certusone/wormhole-sdk';
 import {
   ChainConfig as BaseChainConfig,
   ChainName,
@@ -161,7 +160,6 @@ export interface InternalConfig {
   sdkConverter: SDKConverter;
 
   network: Network;
-  networkLegacy: NetworkLegacy; // TODO remove...
 
   isMainnet: boolean;
 
