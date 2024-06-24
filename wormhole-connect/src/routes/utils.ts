@@ -77,6 +77,7 @@ export const isIlliquidDestToken = (
   { symbol, nativeChain }: TokenConfig,
   destChain: ChainName | ChainId,
 ): boolean => {
+  destChain = config.wh.toChainName(destChain);
   // we want to prevent users from receiving non-native or non-Ethereum origin WETH or wstETH
   // which may lack liquid markets and cause confusion for users
   if (['WETH', 'wstETH'].includes(symbol)) {
