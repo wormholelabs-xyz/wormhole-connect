@@ -6,18 +6,18 @@ import {
   setDestToken,
   setSupportedDestTokens,
   setAllSupportedDestTokens,
-  getNativeVersionOfToken,
+  //getNativeVersionOfToken,
 } from 'store/transferInput';
 
 import type { Route } from 'config/types';
 import type { ChainName } from 'sdklegacy';
 
-import { isPorticoRoute } from 'routes/porticoBridge/utils';
-import { ETHBridge } from 'routes/porticoBridge/ethBridge';
-import { wstETHBridge } from 'routes/porticoBridge/wstETHBridge';
+//import { isPorticoRoute } from 'routes/porticoBridge/utils';
+//import { ETHBridge } from 'routes/porticoBridge/ethBridge';
+//import { wstETHBridge } from 'routes/porticoBridge/wstETHBridge';
 import RouteOperator from 'routes/operator';
 
-import { getWrappedToken } from 'utils';
+//import { getWrappedToken } from 'utils';
 
 type Props = {
   sourceChain: ChainName | undefined;
@@ -86,6 +86,7 @@ export const useComputeDestinationTokens = (props: Props): void => {
         }
       }
 
+      /*
       // If the source token is supported by a Portico bridge route,
       // then select the native version on the dest chain
       if (sourceToken && destChain && (!route || isPorticoRoute(route))) {
@@ -107,6 +108,7 @@ export const useComputeDestinationTokens = (props: Props): void => {
           }
         }
       }
+      */
     };
 
     computeDestTokens();
