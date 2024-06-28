@@ -16,16 +16,151 @@ import {
 } from './types';
 import { TokenPrices } from 'store/tokenPrices';
 
-import { routes } from '@wormhole-foundation/sdk';
+import { Chain, routes } from '@wormhole-foundation/sdk';
 
 import { getRoute } from './mappings';
+import axios from 'axios';
+
+export interface TxInfo {
+  route: Route;
+  fromChain: Chain;
+  toChain: Chain;
+  tokenChain: Chain;
+  tokenAddress: string;
+  amount: string;
+}
 
 export class Operator {
   getRoute(route: Route): RouteAbstract {
     return getRoute(route);
   }
 
-  async getRouteFromTx(txHash: string, chain: ChainName): Promise<Route> {
+  async getRouteFromTx(txHash: string, chain: Chain): Promise<TxInfo> {
+    const url = `https://api.${
+      config.isMainnet ? '' : 'testnet.'
+    }wormholescan.io/api/v1/operations?page=0&pageSize=1&sortOrder=DESC&txHash=${txHash}`;
+
+    interface Operations {
+      operations: Operation[];
+    }
+
+    interface Operation {
+      id: string;
+      emitterChain: number;
+      emitterAddress: {
+        hex: string;
+        native: string;
+      };
+      sequence: string;
+      //vaa: {
+      //  raw: string;
+      //  guardianSetIndex: number;
+      //  isDuplicated: boolean;
+      //};
+      content: {
+        //payload: {
+        //  amount: string;
+        //  fee: string;
+        //  fromAddress: null;
+        //  parsedPayload: null;
+        //  payload: string;
+        //  payloadType: number;
+        //  toAddress: string;
+        //  toChain: number;
+        //  tokenAddress: string;
+        //  tokenChain: number;
+        //};
+        standarizedProperties: {
+          appIds: string[];
+          fromChain: number;
+          fromAddress: string;
+          toChain: number;
+          toAddress: string;
+          tokenChain: number;
+          tokenAddress: string;
+          amount: string;
+          feeAddress: string;
+          feeChain: number;
+          fee: string;
+        };
+      };
+      sourceChain: {
+        chainId: number;
+        timestamp: string;
+        transaction: {
+          txHash: string;
+        };
+        from: string;
+        status: string;
+      };
+      data: {
+        symbol: string;
+        tokenAmount: string;
+        usdAmount: string;
+      };
+    }
+
+    //https://github.com/XLabs/wormscan-ui/blob/b96ad4c44d367cbf7c7e1c39d655e9fda3e0c3d9/src/consts.ts#L173-L185
+    //export const UNKNOWN_APP_ID = 'UNKNOWN';
+    //export const CCTP_APP_ID = 'CCTP_WORMHOLE_INTEGRATION';
+    //export const CCTP_MANUAL_APP_ID = 'CCTP_MANUAL';
+    const CONNECT_APP_ID = 'CONNECT';
+    //export const GATEWAY_APP_ID = 'WORMCHAIN_GATEWAY_TRANSFER';
+    const PORTAL_APP_ID = 'PORTAL_TOKEN_BRIDGE';
+    //export const PORTAL_NFT_APP_ID = 'PORTAL_NFT_BRIDGE';
+    //export const ETH_BRIDGE_APP_ID = 'ETH_BRIDGE';
+    //export const USDT_TRANSFER_APP_ID = 'USDT_TRANSFER';
+    //export const NTT_APP_ID = 'NATIVE_TOKEN_TRANSFER';
+    //export const GR_APP_ID = 'GENERIC_RELAYER';
+    //export const MAYAN_APP_ID = 'MAYAN';
+    //export const TBTC_APP_ID = 'TBTC';
+
+    const { data } = await axios.get<Operations>(url);
+    if (data.operations.length === 0)
+      throw new Error('No route found for txHash');
+    const operation = data.operations[0];
+    const { appIds, fromChain, toChain, tokenChain, tokenAddress, amount } =
+      operation.content.standarizedProperties;
+    const details = {
+      fromChain: config.sdkConverter.toChainV2(fromChain as ChainId),
+      toChain: config.sdkConverter.toChainV2(toChain as ChainId),
+      tokenChain: config.sdkConverter.toChainV2(tokenChain as ChainId),
+      tokenAddress, // TODO: convert to SDK address (non-serializable in redux)?
+      amount, // TODO: is amount expressed in source chain decimals?
+    };
+    if (appIds.length === 1) {
+      switch (appIds[0]) {
+        case PORTAL_APP_ID:
+          return {
+            ...details,
+            route: Route.Bridge,
+          };
+        // case ETH_BRIDGE_APP_ID:
+        // return Route.ETHBridge;
+        //case USDT_TRANSFER_APP_ID:
+        //  return Route.CCTPManual;
+        //case NTT_APP_ID:
+        //  return Route.NttManual;
+        //case GR_APP_ID:
+        //  return Route.GenericRelayer;
+        //case MAYAN_APP_ID:
+        //  return Route.Mayan;
+        //case TBTC_APP_ID:
+        // return Route.TBTC;
+        //case GATEWAY_APP_ID:
+        //  return Route.CosmosGateway;
+        //case CCTP_APP_ID:
+        //  return Route.CCTPRelay;
+      }
+    }
+    if (appIds.length === 2) {
+      if (appIds.includes(PORTAL_APP_ID) && appIds.includes(CONNECT_APP_ID)) {
+        return {
+          ...details,
+          route: Route.Relay,
+        };
+      }
+    }
     /*
     if (isGatewayChain(chain)) {
       return Route.CosmosGateway;
@@ -137,7 +272,8 @@ export class Operator {
 
     // TODO SDKV2
     // relied on getMessage
-    return Route.Bridge;
+    // return Route.Bridge;
+    throw new Error('No route found for txHash');
   }
 
   async isRouteSupported(

@@ -85,10 +85,10 @@ function TxSearch() {
       setLoading(true);
       const route = await RouteOperator.getRouteFromTx(
         state.tx,
-        state.chain as ChainName,
+        config.sdkConverter.toChainV2(state.chain as ChainName),
       );
       const message = await RouteOperator.getMessage(
-        route,
+        route.route,
         state.tx,
         state.chain as ChainName,
       );
