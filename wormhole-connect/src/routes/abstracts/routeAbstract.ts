@@ -15,6 +15,7 @@ import { TokenPrices } from 'store/tokenPrices';
 export abstract class RouteAbstract {
   abstract readonly NATIVE_GAS_DROPOFF_SUPPORTED: boolean;
   abstract readonly AUTOMATIC_DEPOSIT: boolean;
+
   abstract readonly TYPE: Route;
   // protected abstract sendGasFallback: { [key: ChainName]: TokenConfig };
   // protected abstract claimGasFallback: { [key: ChainName]: TokenConfig };

@@ -7,11 +7,7 @@ import type { ChainName } from 'sdklegacy';
 import config, { getWormholeContextV2 } from 'config';
 import { isValidTxId } from 'utils';
 import RouteOperator from 'routes/operator';
-import {
-  setTxDetails,
-  setRoute as setRedeemRoute,
-  setIsResumeTx,
-} from 'store/redeem';
+import { setRoute as setRedeemRoute, setIsResumeTx } from 'store/redeem';
 import { setRoute as setAppRoute } from 'store/router';
 import PageHeader from 'components/PageHeader';
 import Search from 'components/Search';

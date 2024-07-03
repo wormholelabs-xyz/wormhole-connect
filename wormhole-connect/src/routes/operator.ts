@@ -304,6 +304,11 @@ export class Operator {
     sourceChain: ChainName | ChainId,
     destChain: ChainName | ChainId,
   ): Promise<boolean> {
+    // TODO: disabling non-token bridge routes for now
+    if (![Route.Bridge, Route.Relay].includes(route)) {
+      return false;
+    }
+
     try {
       if (!config.routes.includes(route)) {
         return false;
@@ -331,6 +336,11 @@ export class Operator {
     sourceChain: ChainName | ChainId,
     destChain: ChainName | ChainId,
   ): Promise<boolean> {
+    // TODO: disabling non-token bridge routes for now
+    if (![Route.Bridge, Route.Relay].includes(route)) {
+      return false;
+    }
+
     if (!config.routes.includes(route)) {
       return false;
     }
@@ -344,6 +354,7 @@ export class Operator {
       destChain,
     );
   }
+
   allSupportedChains(): ChainName[] {
     const supported = new Set<ChainName>();
     for (const key in config.chains) {

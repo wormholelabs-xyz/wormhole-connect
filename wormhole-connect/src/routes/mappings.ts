@@ -15,7 +15,7 @@ export function getRoute(route: Route): SDKv2Route {
     case Route.Bridge:
       return new SDKv2Route(routes.TokenBridgeRoute, Route.Bridge);
     case Route.Relay:
-      return new SDKv2Route(routes.AutomaticTokenBridgeRoute, Route.Bridge);
+      return new SDKv2Route(routes.AutomaticTokenBridgeRoute, Route.Relay);
 
     // Legacy routes:
     /*

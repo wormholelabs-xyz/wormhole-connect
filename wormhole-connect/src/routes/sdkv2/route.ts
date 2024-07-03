@@ -32,6 +32,7 @@ import {
   SourceFinalizedTransferReceipt,
 } from '@wormhole-foundation/sdk';
 import config, { getWormholeContextV2 } from 'config';
+import { calculateUSDPrice, getDisplayName } from 'utils';
 
 export class SDKv2Route extends RouteAbstract {
   TYPE: Route;
@@ -44,6 +45,11 @@ export class SDKv2Route extends RouteAbstract {
   ) {
     super();
     this.TYPE = routeType;
+    // TODO: get this info from the SDK
+    if (routeType === Route.Relay) {
+      this.NATIVE_GAS_DROPOFF_SUPPORTED = true;
+      this.AUTOMATIC_DEPOSIT = true;
+    }
   }
 
   async getV2ChainContext<C extends Chain>(
@@ -152,7 +158,25 @@ export class SDKv2Route extends RouteAbstract {
     sourceChain: ChainName | ChainId,
     destChain: ChainName | ChainId,
   ): Promise<boolean> {
-    // TODO
+    try {
+      const [, quote] = await this.getQuote(
+        amount,
+        sourceToken,
+        destToken,
+        sourceChain,
+        destChain,
+        {},
+      );
+      if (!quote.success) {
+        return false;
+      }
+    } catch (e) {
+      console.error(e);
+      // TODO is this the right place to try/catch these?
+      // or deeper inside SDKv2Route?
+      return false;
+    }
+
     return true;
   }
 
@@ -257,32 +281,105 @@ export class SDKv2Route extends RouteAbstract {
       .filter((tc) => tc != undefined) as TokenConfig[];
   }
 
+  //private async getQuote<FC extends Chain, TC extends Chain>(
+  //  amount: string,
+  //  sourceToken: TokenIdV2<FC>,
+  //  destToken: TokenIdV2<TC>,
+  //  sourceChain: ChainContext<Network, FC>,
+  //  destChain: ChainContext<Network, TC>,
+  //  options: any,
+  //): Promise<
+  //  [
+  //    routes.Route<Network>,
+  //    routes.QuoteResult<any>,
+  //    routes.RouteTransferRequest<Network>,
+  //  ]
+  //> {
+  //  const wh = await getWormholeContextV2();
+  //  console.log(sourceToken, destToken, sourceChain, destChain);
+  //  const req = await routes.RouteTransferRequest.create(
+  //    wh,
+  //    /* @ts-ignore */
+  //    {
+  //      source: sourceToken,
+  //      destination: destToken,
+  //    },
+  //    sourceChain,
+  //    destChain,
+  //  );
+
+  //  console.log(req);
+
+  //  const route = new this.rc(wh);
+
+  //  const validationResult = await route.validate(req, {
+  //    amount,
+  //    options,
+  //  });
+
+  //  if (!validationResult.valid) {
+  //    throw validationResult.error;
+  //  }
+
+  //  return [route, await route.quote(req, validationResult.params), req];
+  //}
+
   private async getQuote<FC extends Chain, TC extends Chain>(
     amount: string,
-    sourceToken: TokenIdV2<FC>,
-    destToken: TokenIdV2<TC>,
-    sourceChain: ChainContext<Network, FC>,
-    destChain: ChainContext<Network, TC>,
+    sourceTokenV1: string,
+    destTokenV1: string,
+    sourceChainV1: ChainName | ChainId,
+    destChainV1: ChainName | ChainId,
     options: any,
-  ): Promise<[routes.Route<Network>, routes.QuoteResult<any>]> {
+  ): Promise<
+    [
+      routes.Route<Network>,
+      routes.QuoteResult<any>,
+      routes.RouteTransferRequest<Network>,
+    ]
+  > {
+    const sourceTokenV2: TokenIdV2 | undefined =
+      config.sdkConverter.getTokenIdV2ForKey(
+        sourceTokenV1,
+        sourceChainV1,
+        config.tokens,
+      );
+
+    const destTokenV2: TokenIdV2 | undefined =
+      config.sdkConverter.getTokenIdV2ForKey(
+        destTokenV1,
+        destChainV1,
+        config.tokens,
+      );
+
+    if (sourceTokenV2 === undefined) {
+      throw new Error(`Failed to find TokenId for ${sourceTokenV1}`);
+    }
+    if (destTokenV2 === undefined) {
+      throw new Error(`Failed to find TokenId for ${destTokenV1}`);
+    }
+
+    const sourceChainV2 = (await this.getV2ChainContext(sourceChainV1)).context;
+    const destChainV2 = (await this.getV2ChainContext(destChainV1)).context;
+
     const wh = await getWormholeContextV2();
-    console.log(sourceToken, destToken, sourceChain, destChain);
+    console.log(sourceTokenV2, destTokenV2, sourceChainV2, destChainV2);
     const req = await routes.RouteTransferRequest.create(
       wh,
       /* @ts-ignore */
       {
-        source: sourceToken,
-        destination: destToken,
+        source: sourceTokenV2,
+        destination: destTokenV2,
       },
-      sourceChain,
-      destChain,
+      sourceChainV2,
+      destChainV2,
     );
 
     console.log(req);
 
-    const route = new this.rc(wh, req);
+    const route = new this.rc(wh);
 
-    const validationResult = await route.validate({
+    const validationResult = await route.validate(req, {
       amount,
       options,
     });
@@ -291,7 +388,7 @@ export class SDKv2Route extends RouteAbstract {
       throw validationResult.error;
     }
 
-    return [route, await route.quote(validationResult.params)];
+    return [route, await route.quote(req, validationResult.params), req];
   }
 
   async computeReceiveAmount(
@@ -311,36 +408,12 @@ export class SDKv2Route extends RouteAbstract {
     if (!fromChainV1 || !toChainV1)
       throw new Error('Need both chains to get a quote from SDKv2');
 
-    const srcTokenV2: TokenIdV2 | undefined =
-      config.sdkConverter.getTokenIdV2ForKey(
-        sourceToken,
-        fromChainV1,
-        config.tokens,
-      );
-
-    const dstTokenV2: TokenIdV2 | undefined =
-      config.sdkConverter.getTokenIdV2ForKey(
-        destToken,
-        toChainV1,
-        config.tokens,
-      );
-
-    if (srcTokenV2 === undefined) {
-      throw new Error(`Failed to find TokenId for ${sourceToken}`);
-    }
-    if (dstTokenV2 === undefined) {
-      throw new Error(`Failed to find TokenId for ${destToken}`);
-    }
-
-    const srcChain = (await this.getV2ChainContext(fromChainV1)).context;
-    const dstChain = (await this.getV2ChainContext(toChainV1)).context;
-
-    const [_route, quote] = await this.getQuote(
+    const [, quote] = await this.getQuote(
       amountIn.toString(),
-      srcTokenV2,
-      dstTokenV2,
-      srcChain,
-      dstChain,
+      sourceToken,
+      destToken,
+      fromChainV1,
+      toChainV1,
       options,
     );
 
@@ -417,30 +490,12 @@ export class SDKv2Route extends RouteAbstract {
       SourceInitiatedTransferReceipt | SourceFinalizedTransferReceipt<any>,
     ]
   > {
-    const fromChainV2 = await this.getV2ChainContext(fromChainV1);
-    const toChainV2 = await this.getV2ChainContext(toChainV1);
-
-    const sourceTokenV2 = config.sdkConverter.toTokenIdV2(
-      sourceToken,
-      fromChainV1,
-    );
-
-    const destTokenV2 = config.sdkConverter.getTokenIdV2ForKey(
-      destToken,
-      toChainV1,
-      config.tokens,
-    );
-
-    console.log(sourceToken, sourceTokenV2, destTokenV2);
-
-    if (!destTokenV2) throw new Error(`Couldn't find destToken`);
-
-    const [route, quote] = await this.getQuote(
+    const [route, quote, req] = await this.getQuote(
       amount.toString(),
-      sourceTokenV2,
-      destTokenV2,
-      fromChainV2.context,
-      toChainV2.context,
+      sourceToken.key,
+      destToken,
+      fromChainV1,
+      toChainV1,
       options,
     );
 
@@ -459,6 +514,7 @@ export class SDKv2Route extends RouteAbstract {
     console.log(signer);
 
     let receipt = await route.initiate(
+      req,
       signer,
       quote,
       Wormhole.chainAddress(
@@ -503,9 +559,9 @@ export class SDKv2Route extends RouteAbstract {
   ): Promise<TransferDisplayData> {
     return [
       {
-        title: 'test',
-        value: 'testvalue',
-        valueUSD: '23',
+        title: 'Amount',
+        value: `${!isNaN(amount) ? amount : '0'} ${getDisplayName(destToken)}`,
+        valueUSD: calculateUSDPrice(amount, tokenPrices, destToken),
       },
     ];
   }

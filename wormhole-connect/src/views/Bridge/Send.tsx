@@ -229,12 +229,13 @@ function Send(props: { valid: boolean }) {
         // TODO: SDKV2 set the tx details using on-chain data
         // because they might be different than what we have in memory (relayer fee)
         // or we may not have all the data (e.g. block)
+        // TODO: we don't need all of these details
         dispatch(
           setTxDetails({
             sendTx: txId,
             sender: sending.address,
             amount,
-            payloadID: sdkRoute.IS_AUTOMATIC ? 1 : 3, // TODO: don't need this
+            payloadID: sdkRoute.IS_AUTOMATIC ? 3 : 1, // TODO: don't need this
             recipient: receiving.address,
             toChain: config.sdkConverter.toChainNameV1(receipt.to),
             fromChain: config.sdkConverter.toChainNameV1(receipt.from),
@@ -246,7 +247,7 @@ function Send(props: { valid: boolean }) {
               config.wh.toChainId(fromChain!),
               getWrappedTokenId(sendToken),
             ),
-            receivedTokenKey: config.tokens[destToken].key!, // TODO: wrong
+            receivedTokenKey: config.tokens[destToken].key!, // TODO: wrong for non-token bridge routes
             emitterAddress: undefined,
             sequence: undefined,
             block: 0,
