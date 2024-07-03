@@ -16,18 +16,23 @@ import {
 } from './types';
 import { TokenPrices } from 'store/tokenPrices';
 
-import { Chain, routes } from '@wormhole-foundation/sdk';
+import {
+  Chain,
+  Network,
+  routes,
+  SourceInitiatedTransferReceipt,
+  TransferState,
+} from '@wormhole-foundation/sdk';
 
 import { getRoute } from './mappings';
 import axios from 'axios';
 
 export interface TxInfo {
   route: Route;
-  fromChain: Chain;
-  toChain: Chain;
   tokenChain: Chain;
   tokenAddress: string;
   amount: string;
+  receipt: SourceInitiatedTransferReceipt;
 }
 
 export class Operator {
@@ -119,14 +124,29 @@ export class Operator {
     if (data.operations.length === 0)
       throw new Error('No route found for txHash');
     const operation = data.operations[0];
-    const { appIds, fromChain, toChain, tokenChain, tokenAddress, amount } =
+    const { appIds, tokenChain, tokenAddress, toChain, amount, fromChain } =
       operation.content.standarizedProperties;
+    if (config.sdkConverter.toChainV2(fromChain as ChainId) !== chain) {
+      // TODO: wormholescan can return transactions from other chains
+      // with the same txHash
+      throw new Error('Chain mismatch');
+    }
     const details = {
-      fromChain: config.sdkConverter.toChainV2(fromChain as ChainId),
-      toChain: config.sdkConverter.toChainV2(toChain as ChainId),
       tokenChain: config.sdkConverter.toChainV2(tokenChain as ChainId),
       tokenAddress, // TODO: convert to SDK address (non-serializable in redux)?
       amount, // TODO: is amount expressed in source chain decimals?
+      receipt: {
+        from: chain,
+        to: config.sdkConverter.toChainV2(toChain as ChainId),
+        state: TransferState.SourceInitiated,
+        originTxs: [
+          {
+            chain,
+            // TODO: right format for all chains?
+            txid: operation.sourceChain.transaction.txHash,
+          },
+        ],
+      } satisfies SourceInitiatedTransferReceipt,
     };
     if (appIds.length === 1) {
       switch (appIds[0]) {
