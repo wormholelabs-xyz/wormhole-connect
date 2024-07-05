@@ -33,16 +33,14 @@ import {
 } from '@wormhole-foundation/sdk';
 import config, { getWormholeContextV2 } from 'config';
 import { calculateUSDPrice, getDisplayName } from 'utils';
+import { BigNumber } from 'ethers5';
 
 export class SDKv2Route extends RouteAbstract {
   TYPE: Route;
   NATIVE_GAS_DROPOFF_SUPPORTED = false;
   AUTOMATIC_DEPOSIT = false;
 
-  constructor(
-    readonly rc: routes.RouteConstructor,
-    routeType: Route,
-  ) {
+  constructor(readonly rc: routes.RouteConstructor, routeType: Route) {
     super();
     this.TYPE = routeType;
     // TODO: get this info from the SDK
@@ -85,20 +83,17 @@ export class SDKv2Route extends RouteAbstract {
     // We need to identifying which token address this is actually referring to
     // on the given chain by checking 'foreignAssets' key in token configs
     const getTokenIdV2 = (
-      symbol: string,
+      tokenKey: string,
       chain: ChainName | ChainId,
     ): TokenIdV2 | undefined => {
-      const tc = config.tokens[symbol];
+      const tc = config.tokens[tokenKey];
       const chainName = config.wh.toChainName(chain);
       if (tc.nativeChain === chainName) {
         return config.sdkConverter.toTokenIdV2(tc);
       } else {
-        /* @ts-ignore */
-        const fa = tc.foreignAssets[chainName];
-        if (fa) {
-          /* @ts-ignore */
-          const foreignAddr = tc.foreignAssets[chain].address;
-          return config.sdkConverter.tokenIdV2(chainName, foreignAddr);
+        const foreignAddress = tc?.foreignAssets?.[chainName]?.address;
+        if (foreignAddress) {
+          return config.sdkConverter.tokenIdV2(chainName, foreignAddress);
         } else {
           return undefined;
         }
@@ -159,6 +154,21 @@ export class SDKv2Route extends RouteAbstract {
     destChain: ChainName | ChainId,
   ): Promise<boolean> {
     try {
+      const wh = await getWormholeContextV2();
+      const route = new this.rc(wh);
+      if (routes.isAutomatic(route)) {
+        const req = await this.createRequest(
+          amount,
+          sourceToken,
+          destToken,
+          sourceChain,
+          destChain,
+        );
+        const available = await route.isAvailable(req);
+        if (!available) {
+          return false;
+        }
+      }
       const [, quote] = await this.getQuote(
         amount,
         sourceToken,
@@ -324,7 +334,7 @@ export class SDKv2Route extends RouteAbstract {
   //  return [route, await route.quote(req, validationResult.params), req];
   //}
 
-  private async getQuote<FC extends Chain, TC extends Chain>(
+  private async getQuote(
     amount: string,
     sourceTokenV1: string,
     destTokenV1: string,
@@ -338,6 +348,34 @@ export class SDKv2Route extends RouteAbstract {
       routes.RouteTransferRequest<Network>,
     ]
   > {
+    const req = await this.createRequest(
+      amount,
+      sourceTokenV1,
+      destTokenV1,
+      sourceChainV1,
+      destChainV1,
+    );
+    const wh = await getWormholeContextV2();
+    const route = new this.rc(wh);
+    const validationResult = await route.validate(req, {
+      amount,
+      options,
+    });
+
+    if (!validationResult.valid) {
+      throw validationResult.error;
+    }
+
+    return [route, await route.quote(req, validationResult.params), req];
+  }
+
+  async createRequest(
+    amount: string,
+    sourceTokenV1: string,
+    destTokenV1: string,
+    sourceChainV1: ChainName | ChainId,
+    destChainV1: ChainName | ChainId,
+  ): Promise<routes.RouteTransferRequest<Network>> {
     const sourceTokenV2: TokenIdV2 | undefined =
       config.sdkConverter.getTokenIdV2ForKey(
         sourceTokenV1,
@@ -374,21 +412,8 @@ export class SDKv2Route extends RouteAbstract {
       sourceChainV2,
       destChainV2,
     );
-
     console.log(req);
-
-    const route = new this.rc(wh);
-
-    const validationResult = await route.validate(req, {
-      amount,
-      options,
-    });
-
-    if (!validationResult.valid) {
-      throw validationResult.error;
-    }
-
-    return [route, await route.quote(req, validationResult.params), req];
+    return req;
   }
 
   async computeReceiveAmount(
@@ -557,13 +582,22 @@ export class SDKv2Route extends RouteAbstract {
     tokenPrices: TokenPrices,
     routeOptions?: any,
   ): Promise<TransferDisplayData> {
-    return [
+    const displayData = [
       {
         title: 'Amount',
         value: `${!isNaN(amount) ? amount : '0'} ${getDisplayName(destToken)}`,
         valueUSD: calculateUSDPrice(amount, tokenPrices, destToken),
       },
     ];
+    if (typeof routeOptions.relayerFee === 'number') {
+      const { relayerFee } = routeOptions;
+      displayData.push({
+        title: 'Relayer fee',
+        value: `${relayerFee} ${getDisplayName(token)}`,
+        valueUSD: calculateUSDPrice(relayerFee, tokenPrices, token),
+      });
+    }
+    return displayData;
   }
 
   async getTransferSourceInfo<T extends TransferInfoBaseParams>(
@@ -596,8 +630,31 @@ export class SDKv2Route extends RouteAbstract {
     destChain: ChainName | ChainId,
     token: string,
     destToken: string,
+    amount: string,
   ): Promise<RelayerFee | null> {
-    return null;
+    const [, quote] = await this.getQuote(
+      amount,
+      token,
+      destToken,
+      sourceChain,
+      destChain,
+      {},
+    );
+    if (!quote.success) {
+      throw quote.error;
+    }
+    if (!quote.relayFee) {
+      return null;
+    }
+    const { token: feeTokenV2, amount: feeAmount } = quote.relayFee;
+    const feeToken = config.sdkConverter.toTokenIdV1(feeTokenV2);
+    if (!feeToken) throw new Error('Failed to convert fee token');
+    const relayerFee = {
+      feeToken,
+      fee: BigNumber.from(feeAmount.amount),
+    };
+    console.log(`Relayer fee: ${relayerFee.fee.toString()}`);
+    return relayerFee;
   }
 
   async getForeignAsset(

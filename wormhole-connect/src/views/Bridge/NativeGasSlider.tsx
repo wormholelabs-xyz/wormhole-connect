@@ -199,6 +199,7 @@ function GasSlider(props: { disabled: boolean }) {
     toChain,
   ]);
 
+  // This hook sets the max amount of token being bridged that can be converted to native gas
   useEffect(() => {
     if (
       !toChain ||

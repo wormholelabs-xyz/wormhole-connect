@@ -661,9 +661,10 @@ export class Operator {
     destChain: ChainName | ChainId,
     token: string,
     destToken: string,
+    amount: string,
   ): Promise<RelayerFee | null> {
     const r = this.getRoute(route);
-    return r.getRelayerFee(sourceChain, destChain, token, destToken);
+    return r.getRelayerFee(sourceChain, destChain, token, destToken, amount);
   }
 
   async getForeignAsset(

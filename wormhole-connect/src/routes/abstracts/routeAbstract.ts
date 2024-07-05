@@ -177,6 +177,7 @@ export abstract class RouteAbstract {
     destChain: ChainName | ChainId,
     token: string,
     destToken: string,
+    amount: string,
   ): Promise<RelayerFee | null>;
 
   abstract getForeignAsset(
