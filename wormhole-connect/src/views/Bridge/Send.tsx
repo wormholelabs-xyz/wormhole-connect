@@ -23,7 +23,6 @@ import {
   getTokenDecimals,
   getWrappedToken,
   getWrappedTokenId,
-  sleep,
 } from 'utils';
 import { LINK } from 'utils/style';
 import {
@@ -31,7 +30,6 @@ import {
   switchChain,
   TransferWallet,
 } from 'utils/wallet';
-import { UnsignedMessage } from 'routes';
 import RouteOperator from 'routes/operator';
 import { validate, isTransferValid } from 'utils/transferValidation';
 import {
@@ -161,8 +159,6 @@ function Send(props: { valid: boolean }) {
         await switchChain(fromConfig.chainId, TransferWallet.SENDING);
       }
 
-      const routeOptions = isPorticoRoute(route) ? portico : { toNativeToken };
-
       config.triggerEvent({
         type: 'transfer.initiate',
         details: transferDetails,
@@ -178,7 +174,7 @@ function Send(props: { valid: boolean }) {
         toChain!,
         receiving.address,
         destToken,
-        routeOptions,
+        { nativeGas: toNativeToken },
       );
       console.log('send done', sendResult);
 
@@ -189,80 +185,48 @@ function Send(props: { valid: boolean }) {
 
       let txId = '';
 
-      // TODO SDKv2 HACK
-      // Legacy routes return a mere string (tx id)
-      // SDKv2 routes return a Receipt, which has its own nice way of
-      // awaiting for the transaction to complete.
-      //
-      // This means we don't need to use getMessage() on the SDKv2Route class
-      if (typeof sendResult === 'string') {
-        // Legacy route
-        // Wait for the VAA to be available
-        // In this case, sendResult is a txId
-        txId = sendResult;
-        let message: UnsignedMessage | undefined;
-        while (message === undefined) {
-          try {
-            message = await RouteOperator.getMessage(
-              route,
-              sendResult,
-              fromChain!,
-              true, // don't need to get the signed attestation
-            );
-          } catch (e) {
-            console.error(e);
-          }
-          if (message === undefined) {
-            await sleep(3000);
-          }
-        }
-
-        // TODO THERE IS NO ANALOGUE OF THIS FOR SDKv2 AHHHH
-        dispatch(setTxDetails(message));
-      } else {
-        // SDKv2 Receipt
-        // SDKv2Route handles waiting for completion internally so there's nothing else to do here
-        const [sdkRoute, receipt] = sendResult;
-        if ('originTxs' in receipt) {
-          txId = receipt.originTxs[receipt.originTxs.length - 1].txid;
-        }
-        // TODO: SDKV2 set the tx details using on-chain data
-        // because they might be different than what we have in memory (relayer fee)
-        // or we may not have all the data (e.g. block)
-        // TODO: we don't need all of these details
-        dispatch(
-          setTxDetails({
-            sendTx: txId,
-            sender: sending.address,
-            amount,
-            payloadID: sdkRoute.IS_AUTOMATIC ? 3 : 1, // TODO: don't need this
-            recipient: receiving.address,
-            toChain: config.sdkConverter.toChainNameV1(receipt.to),
-            fromChain: config.sdkConverter.toChainNameV1(receipt.from),
-            tokenAddress: getWrappedToken(sendToken).tokenId!.address,
-            tokenChain: config.sdkConverter.toChainNameV1(receipt.from),
-            tokenId: getWrappedTokenId(sendToken),
-            tokenKey: sendToken.key,
-            tokenDecimals: getTokenDecimals(
-              config.wh.toChainId(fromChain!),
-              getWrappedTokenId(sendToken),
-            ),
-            receivedTokenKey: config.tokens[destToken].key!, // TODO: wrong for non-token bridge routes
-            emitterAddress: undefined,
-            sequence: undefined,
-            block: 0,
-            gasFee: undefined,
-            payload: undefined,
-            inputData: undefined,
-            relayerPayloadId: undefined,
-            to: undefined,
-            relayerFee: undefined,
-            toNativeTokenAmount: undefined,
-          }),
-        );
-        routeContext.setRoute(sdkRoute);
-        routeContext.setReceipt(receipt);
+      // SDKv2 Receipt
+      // SDKv2Route handles waiting for completion internally so there's nothing else to do here
+      const [sdkRoute, receipt] = sendResult;
+      if ('originTxs' in receipt) {
+        txId = receipt.originTxs[receipt.originTxs.length - 1].txid;
       }
+      // TODO: SDKV2 set the tx details using on-chain data
+      // because they might be different than what we have in memory (relayer fee)
+      // or we may not have all the data (e.g. block)
+      // TODO: we don't need all of these details
+      dispatch(
+        setTxDetails({
+          sendTx: txId,
+          sender: sending.address,
+          amount,
+          payloadID: sdkRoute.IS_AUTOMATIC ? 3 : 1, // TODO: don't need this
+          recipient: receiving.address,
+          toChain: config.sdkConverter.toChainNameV1(receipt.to),
+          fromChain: config.sdkConverter.toChainNameV1(receipt.from),
+          tokenAddress: getWrappedToken(sendToken).tokenId!.address,
+          tokenChain: config.sdkConverter.toChainNameV1(receipt.from),
+          tokenId: getWrappedTokenId(sendToken),
+          tokenKey: sendToken.key,
+          tokenDecimals: getTokenDecimals(
+            config.wh.toChainId(fromChain!),
+            getWrappedTokenId(sendToken),
+          ),
+          receivedTokenKey: config.tokens[destToken].key!, // TODO: wrong for non-token bridge routes
+          emitterAddress: undefined,
+          sequence: undefined,
+          block: 0,
+          gasFee: undefined,
+          payload: undefined,
+          inputData: undefined,
+          relayerPayloadId: undefined,
+          to: undefined,
+          relayerFee: undefined,
+          toNativeTokenAmount: undefined,
+        }),
+      );
+      routeContext.setRoute(sdkRoute);
+      routeContext.setReceipt(receipt);
 
       dispatch(setIsTransactionInProgress(false));
       dispatch(setSendTx(txId));

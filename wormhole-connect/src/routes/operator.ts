@@ -1,11 +1,8 @@
 /*import { PublicKey } from '@solana/web3.js';*/
 import { ChainId, ChainName, TokenId } from 'sdklegacy';
-import { BigNumber } from 'ethers5';
 
 import config from 'config';
 import { TokenConfig, Route } from 'config/types';
-// import { HashflowRoute } from './hashflow';
-import { RouteAbstract } from './abstracts/routeAbstract';
 import {
   UnsignedMessage,
   SignedMessage,
@@ -26,6 +23,7 @@ import {
 
 import { getRoute } from './mappings';
 import axios from 'axios';
+import SDKv2Route from './sdkv2';
 
 export interface TxInfo {
   route: Route;
@@ -36,7 +34,7 @@ export interface TxInfo {
 }
 
 export class Operator {
-  getRoute(route: Route): RouteAbstract {
+  getRoute(route: Route): SDKv2Route {
     return getRoute(route);
   }
 
@@ -304,11 +302,6 @@ export class Operator {
     sourceChain: ChainName | ChainId,
     destChain: ChainName | ChainId,
   ): Promise<boolean> {
-    // TODO: disabling non-token bridge routes for now
-    if (![Route.Bridge, Route.Relay].includes(route)) {
-      return false;
-    }
-
     try {
       if (!config.routes.includes(route)) {
         return false;
@@ -336,11 +329,6 @@ export class Operator {
     sourceChain: ChainName | ChainId,
     destChain: ChainName | ChainId,
   ): Promise<boolean> {
-    // TODO: disabling non-token bridge routes for now
-    if (![Route.Bridge, Route.Relay].includes(route)) {
-      return false;
-    }
-
     if (!config.routes.includes(route)) {
       return false;
     }
@@ -602,7 +590,7 @@ export class Operator {
     recipientChain: ChainName | ChainId,
     recipientAddress: string,
     destToken: string,
-    routeOptions: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<[routes.Route<Network>, routes.Receipt]> {
     const r = this.getRoute(route);
     return await r.send(
@@ -613,7 +601,7 @@ export class Operator {
       recipientChain,
       recipientAddress,
       destToken,
-      routeOptions,
+      options,
     );
   }
 
@@ -638,7 +626,8 @@ export class Operator {
     claimingGasEst: string,
     receiveAmount: string,
     tokenPrices: TokenPrices,
-    routeOptions?: any,
+    relayerFee?: number,
+    receiveNativeAmt?: number,
   ): Promise<TransferDisplayData> {
     const r = this.getRoute(route);
     return await r.getPreview(
@@ -651,7 +640,8 @@ export class Operator {
       claimingGasEst,
       receiveAmount,
       tokenPrices,
-      routeOptions,
+      relayerFee,
+      receiveNativeAmt,
     );
   }
 
@@ -677,33 +667,6 @@ export class Operator {
     return r.getForeignAsset(tokenId, chain, destToken);
   }
 
-  async isTransferCompleted(
-    route: Route,
-    destChain: ChainName | ChainId,
-    message: SignedMessage,
-  ): Promise<boolean> {
-    const r = this.getRoute(route);
-    return r.isTransferCompleted(destChain, message);
-  }
-
-  async getMessage(
-    route: Route,
-    tx: string,
-    chain: ChainName | ChainId,
-    unsigned?: boolean,
-  ): Promise<UnsignedMessage> {
-    const r = this.getRoute(route);
-    return r.getMessage(tx, chain);
-  }
-
-  async getSignedMessage(
-    route: Route,
-    message: UnsignedMessage,
-  ): Promise<SignedMessage> {
-    const r = this.getRoute(route);
-    return r.getSignedMessage(message);
-  }
-
   getTransferSourceInfo<T extends TransferInfoBaseParams>(
     route: Route,
     params: T,
@@ -718,73 +681,6 @@ export class Operator {
   ): Promise<TransferDestInfo> {
     const r = this.getRoute(route);
     return r.getTransferDestInfo(params);
-  }
-
-  // swap information (native gas slider)
-  nativeTokenAmount(
-    route: Route,
-    destChain: ChainName | ChainId,
-    token: TokenId,
-    amount: BigNumber,
-    walletAddress: string,
-  ): Promise<BigNumber> {
-    throw new Error('TODO SDKv2');
-    /*
-    const r = this.getRoute(route);
-    if (r.AUTOMATIC_DEPOSIT) {
-      return (r as RelayRoute).nativeTokenAmount(
-        destChain,
-        token,
-        amount,
-        walletAddress,
-      );
-    } else {
-      throw new Error('route does not support native gas dropoff');
-    }
-    */
-  }
-
-  maxSwapAmount(
-    route: Route,
-    destChain: ChainName | ChainId,
-    token: TokenId,
-    walletAddress: string,
-  ): Promise<BigNumber> {
-    throw new Error('TODO SDKv2');
-    /*
-    const r = this.getRoute(route);
-    if (r.AUTOMATIC_DEPOSIT) {
-      return (r as RelayRoute).maxSwapAmount(destChain, token, walletAddress);
-    } else {
-      throw new Error('route does not support swap for native gas dropoff');
-    }
-    */
-  }
-
-  async minSwapAmountNative(
-    route: Route,
-    destChain: ChainName | ChainId,
-    token: TokenId,
-    walletAddress: string,
-  ): Promise<BigNumber> {
-    /*
-     * TODO SDKV2
-    const chainName = config.wh.toChainName(destChain);
-    if (chainName === 'solana') {
-      const context = solanaContext();
-      // an non-existent account cannot be sent less than the rent exempt amount
-      // in order to create the wallet, it must be sent at least the rent exemption minimum
-      const acctExists =
-        (await context.connection!.getAccountInfo(
-          new PublicKey(walletAddress),
-        )) !== null;
-      if (acctExists) return BigNumber.from(0);
-      const minBalance =
-        await context.connection!.getMinimumBalanceForRentExemption(0);
-      return BigNumber.from(minBalance);
-    }
-    */
-    return BigNumber.from(0);
   }
 
   tryFetchRedeemTx(

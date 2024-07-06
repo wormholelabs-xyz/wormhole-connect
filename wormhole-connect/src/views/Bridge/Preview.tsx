@@ -4,23 +4,12 @@ import { useTheme } from '@mui/material/styles';
 
 import config from 'config';
 import { RootState } from 'store';
-import { setTransferRoute } from 'store/transferInput';
-import { setRelayerFee } from 'store/relay';
-import { Route } from 'config/types';
-import { getTokenDecimals } from 'utils';
-import { toDecimals } from 'utils/balance';
-import { toChainId } from 'utils/sdk';
 import { TransferDisplayData } from 'routes';
 import RouteOperator from 'routes/operator';
 
 import { RenderRows } from 'components/RenderRows';
 import BridgeCollapse, { CollapseControlStyle } from './Collapse';
 import InputContainer from 'components/InputContainer';
-import {
-  TokenNotSupportedForRelayError,
-  TokenNotRegisteredError,
-} from 'sdklegacy';
-import { isPorticoRoute } from 'routes/porticoBridge/utils';
 
 const defaultPrices = {};
 
@@ -57,19 +46,6 @@ function Preview(props: { collapsed: boolean }) {
       if (!tokenConfig || !destTokenConfig || !sourceConfig || !destConfig)
         return;
 
-      const routeOptions = isPorticoRoute(route)
-        ? portico
-        : {
-            toNativeToken,
-            receiveNativeAmt,
-            relayerFee,
-          };
-      console.log(
-        'building preview',
-        'fee:',
-        routeOptions.relayerFee?.toString(),
-        route,
-      );
       const rows = await RouteOperator.getPreview(
         route,
         tokenConfig,
@@ -81,7 +57,8 @@ function Preview(props: { collapsed: boolean }) {
         gasEst.claim,
         receiveAmount.data || '',
         prices,
-        routeOptions,
+        relayerFee,
+        receiveNativeAmt,
       );
 
       if (isActive) {
@@ -109,6 +86,7 @@ function Preview(props: { collapsed: boolean }) {
     prices,
   ]);
 
+  /*
   useEffect(() => {
     let isActive = true;
     const computeRelayerFee = async () => {
@@ -162,8 +140,7 @@ function Preview(props: { collapsed: boolean }) {
       isActive = false;
     };
   }, [route, token, destToken, toChain, fromChain, amount, dispatch]);
-
-  console.log(state.rows);
+  */
 
   return (
     <BridgeCollapse

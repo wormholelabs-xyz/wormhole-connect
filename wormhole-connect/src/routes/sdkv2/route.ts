@@ -11,7 +11,6 @@ import {
 } from '@wormhole-foundation/sdk';
 import { ChainId, ChainName, TokenId as TokenIdV1 } from 'sdklegacy';
 import { Route, TokenConfig } from 'config/types';
-import { RouteAbstract } from 'routes/abstracts';
 import {
   RelayerFee,
   SignedMessage,
@@ -19,7 +18,6 @@ import {
   TransferDestInfoBaseParams,
   TransferDisplayData,
   TransferInfoBaseParams,
-  UnsignedMessage,
 } from 'routes/types';
 import { TokenPrices } from 'store/tokenPrices';
 import { ParsedMessage, ParsedRelayerMessage } from 'utils/sdk';
@@ -34,14 +32,14 @@ import {
 import config, { getWormholeContextV2 } from 'config';
 import { calculateUSDPrice, getDisplayName } from 'utils';
 import { BigNumber } from 'ethers5';
+import { toFixedDecimals } from 'utils/balance';
 
-export class SDKv2Route extends RouteAbstract {
+export class SDKv2Route {
   TYPE: Route;
   NATIVE_GAS_DROPOFF_SUPPORTED = false;
   AUTOMATIC_DEPOSIT = false;
 
   constructor(readonly rc: routes.RouteConstructor, routeType: Route) {
-    super();
     this.TYPE = routeType;
     // TODO: get this info from the SDK
     if (routeType === Route.Relay) {
@@ -154,6 +152,7 @@ export class SDKv2Route extends RouteAbstract {
     destChain: ChainName | ChainId,
   ): Promise<boolean> {
     try {
+      if (!amount) return true; // TODO: why?
       const wh = await getWormholeContextV2();
       const route = new this.rc(wh);
       if (routes.isAutomatic(route)) {
@@ -175,7 +174,6 @@ export class SDKv2Route extends RouteAbstract {
         destToken,
         sourceChain,
         destChain,
-        {},
       );
       if (!quote.success) {
         return false;
@@ -291,56 +289,13 @@ export class SDKv2Route extends RouteAbstract {
       .filter((tc) => tc != undefined) as TokenConfig[];
   }
 
-  //private async getQuote<FC extends Chain, TC extends Chain>(
-  //  amount: string,
-  //  sourceToken: TokenIdV2<FC>,
-  //  destToken: TokenIdV2<TC>,
-  //  sourceChain: ChainContext<Network, FC>,
-  //  destChain: ChainContext<Network, TC>,
-  //  options: any,
-  //): Promise<
-  //  [
-  //    routes.Route<Network>,
-  //    routes.QuoteResult<any>,
-  //    routes.RouteTransferRequest<Network>,
-  //  ]
-  //> {
-  //  const wh = await getWormholeContextV2();
-  //  console.log(sourceToken, destToken, sourceChain, destChain);
-  //  const req = await routes.RouteTransferRequest.create(
-  //    wh,
-  //    /* @ts-ignore */
-  //    {
-  //      source: sourceToken,
-  //      destination: destToken,
-  //    },
-  //    sourceChain,
-  //    destChain,
-  //  );
-
-  //  console.log(req);
-
-  //  const route = new this.rc(wh);
-
-  //  const validationResult = await route.validate(req, {
-  //    amount,
-  //    options,
-  //  });
-
-  //  if (!validationResult.valid) {
-  //    throw validationResult.error;
-  //  }
-
-  //  return [route, await route.quote(req, validationResult.params), req];
-  //}
-
-  private async getQuote(
+  async getQuote(
     amount: string,
     sourceTokenV1: string,
     destTokenV1: string,
     sourceChainV1: ChainName | ChainId,
     destChainV1: ChainName | ChainId,
-    options: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<
     [
       routes.Route<Network>,
@@ -366,7 +321,10 @@ export class SDKv2Route extends RouteAbstract {
       throw validationResult.error;
     }
 
-    return [route, await route.quote(req, validationResult.params), req];
+    const quote = await route.quote(req, validationResult.params);
+    console.log('Got quote', quote);
+
+    return [route, quote, req];
   }
 
   async createRequest(
@@ -422,7 +380,7 @@ export class SDKv2Route extends RouteAbstract {
     destToken: string,
     fromChainV1: ChainName | undefined,
     toChainV1: ChainName | undefined,
-    options: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<number> {
     console.log(sourceToken, fromChainV1, destToken, toChainV1);
 
@@ -455,7 +413,7 @@ export class SDKv2Route extends RouteAbstract {
     destToken: string,
     fromChainV1: ChainName | undefined,
     toChainV1: ChainName | undefined,
-    routeOptions: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<number> {
     if (!fromChainV1 || !toChainV1)
       throw new Error('Need both chains to get a quote from SDKv2');
@@ -467,15 +425,44 @@ export class SDKv2Route extends RouteAbstract {
       destToken,
       fromChainV1,
       toChainV1,
-      routeOptions,
+      options,
     );
+  }
+
+  async computeQuote(
+    amountIn: number,
+    sourceToken: string,
+    destToken: string,
+    fromChainV1: ChainName | undefined,
+    toChainV1: ChainName | undefined,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
+  ): Promise<routes.QuoteResult<any>> {
+    console.log(sourceToken, fromChainV1, destToken, toChainV1);
+
+    if (!fromChainV1 || !toChainV1)
+      throw new Error('Need both chains to get a quote from SDKv2');
+
+    const [, quote] = await this.getQuote(
+      amountIn.toString(),
+      sourceToken,
+      destToken,
+      fromChainV1,
+      toChainV1,
+      options,
+    );
+
+    if (!quote.success) {
+      throw quote.error;
+    }
+
+    return quote;
   }
 
   // Unused method, don't bother implementing
   // TODO Get rid of this
   public computeSendAmount(
     receiveAmount: number | undefined,
-    routeOptions: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<number> {
     throw new Error('Method not implemented.');
   }
@@ -487,12 +474,14 @@ export class SDKv2Route extends RouteAbstract {
     senderAddress: string,
     recipientChain: ChainName | ChainId,
     recipientAddress: string,
-    routeOptions: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
 
-  public getMinSendAmount(routeOptions: any): number {
+  public getMinSendAmount(
+    options?: routes.AutomaticTokenBridgeRoute.Options,
+  ): number {
     return 0;
   }
 
@@ -503,12 +492,12 @@ export class SDKv2Route extends RouteAbstract {
   async send(
     sourceToken: TokenConfig,
     amount: string,
-    fromChainV1: ChainName,
+    fromChainV1: ChainName | ChainId,
     senderAddress: string,
     toChainV1: ChainName | ChainId,
     recipientAddress: string,
     destToken: string,
-    options: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<
     [
       routes.Route<Network>,
@@ -523,8 +512,6 @@ export class SDKv2Route extends RouteAbstract {
       toChainV1,
       options,
     );
-
-    console.log(quote);
 
     if (!quote.success) {
       throw quote.error;
@@ -575,12 +562,13 @@ export class SDKv2Route extends RouteAbstract {
     destToken: TokenConfig,
     amount: number,
     sendingChain: ChainName | ChainId,
-    receipientChain: ChainName | ChainId,
+    recipientChain: ChainName | ChainId,
     sendingGasEst: string,
     claimingGasEst: string,
     receiveAmount: string,
     tokenPrices: TokenPrices,
-    routeOptions?: any,
+    relayerFee?: number,
+    receiveNativeAmt?: number,
   ): Promise<TransferDisplayData> {
     const displayData = [
       {
@@ -589,12 +577,27 @@ export class SDKv2Route extends RouteAbstract {
         valueUSD: calculateUSDPrice(amount, tokenPrices, destToken),
       },
     ];
-    if (typeof routeOptions.relayerFee === 'number') {
-      const { relayerFee } = routeOptions;
+    if (relayerFee) {
       displayData.push({
         title: 'Relayer fee',
         value: `${relayerFee} ${getDisplayName(token)}`,
         valueUSD: calculateUSDPrice(relayerFee, tokenPrices, token),
+      });
+    }
+    if (receiveNativeAmt) {
+      const destGasToken =
+        config.chains[config.wh.toChainName(recipientChain)]?.gasToken;
+      displayData.push({
+        title: 'Native gas on destination',
+        value: `${toFixedDecimals(
+          receiveNativeAmt.toString(),
+          6,
+        )} ${getDisplayName(destToken)}`,
+        valueUSD: calculateUSDPrice(
+          receiveNativeAmt,
+          tokenPrices,
+          config.tokens[destGasToken || ''],
+        ),
       });
     }
     return displayData;
@@ -638,7 +641,6 @@ export class SDKv2Route extends RouteAbstract {
       destToken,
       sourceChain,
       destChain,
-      {},
     );
     if (!quote.success) {
       throw quote.error;
@@ -653,7 +655,6 @@ export class SDKv2Route extends RouteAbstract {
       feeToken,
       fee: BigNumber.from(feeAmount.amount),
     };
-    console.log(`Relayer fee: ${relayerFee.fee.toString()}`);
     return relayerFee;
   }
 
@@ -663,38 +664,6 @@ export class SDKv2Route extends RouteAbstract {
     destToken?: TokenConfig | undefined,
   ): Promise<string | null> {
     return 'test';
-  }
-
-  async getMessage(
-    tx: string,
-    chain: ChainName | ChainId,
-  ): Promise<UnsignedMessage> {
-    /*
-    let { context } = await this.getV2ChainContext(chain);
-    switch (this.TYPE) {
-      case 'bridge':
-      case 'relay':
-        let vaa = (await context.getProtocol('TokenBridge')
-
-
-    }
-
-    let vaas = await (await context.getProtocol('WormholeCore')).parseMessages(tx);
-    console.log(vaas);
-    debugger;
-    */
-    throw new Error('Method not implemented');
-  }
-
-  getSignedMessage(message: UnsignedMessage): Promise<SignedMessage> {
-    throw new Error('Method not implemented.');
-  }
-
-  isTransferCompleted(
-    destChain: ChainName | ChainId,
-    messageInfo: SignedMessage,
-  ): Promise<boolean> {
-    throw new Error('Method not implemented.');
   }
 
   tryFetchRedeemTx(
