@@ -17,6 +17,7 @@ import BridgeCollapse, { CollapseControlStyle } from './Collapse';
 import { Banner } from './RouteOptions';
 import Price from 'components/Price';
 import { toFixedDecimals } from 'utils/balance';
+import { TokenConfig } from 'config/types';
 
 const useStyles = makeStyles()(() => ({
   container: {
@@ -64,7 +65,7 @@ type ThumbProps = React.HTMLAttributes<unknown>;
 function NativeGasSlider(props: { disabled: boolean }) {
   const { classes } = useStyles();
   const dispatch = useDispatch();
-  const { token, toChain, amount, route } = useSelector(
+  const { token, toChain, amount, route, receiveAmount } = useSelector(
     (state: RootState) => state.transferInput,
   );
   const receiveNativeAmt = useSelector(
@@ -116,14 +117,21 @@ function NativeGasSlider(props: { disabled: boolean }) {
     dispatch(setToNativeToken(debouncedPercentage / 100));
   }, [debouncedPercentage]);
 
-  const nativeGasPrice = calculateUSDPrice(
-    receiveNativeAmt,
-    prices,
-    nativeGasToken,
-  );
+  const nativeGasPrice = useMemo(() => {
+    return calculateUSDPrice(
+      toFixedDecimals(receiveNativeAmt?.toString() || '0', 6),
+      prices,
+      nativeGasToken,
+    );
+  }, [receiveNativeAmt, nativeGasToken, prices]);
 
-  //   const decimals = getTokenDecimals(toChainId(fromChain), feeToken);
-  //   const formattedFee = Number.parseFloat(toDecimals(fee, decimals, 6));
+  const tokenPrice = useMemo(() => {
+    return calculateUSDPrice(
+      toFixedDecimals(receiveAmount?.data || '0', 6),
+      prices,
+      config.tokens[token],
+    );
+  }, [receiveAmount, token, prices]);
 
   return (
     <BridgeCollapse
@@ -176,6 +184,17 @@ function NativeGasSlider(props: { disabled: boolean }) {
                     </div>
                   </div>
                   <Price textAlign="right">{nativeGasPrice}</Price>
+                </div>
+                <div>
+                  <div className={classes.amountDisplay}>
+                    <TokenIcon
+                      icon={(sendingToken as TokenConfig)!.icon}
+                      height={16}
+                    />
+                    {toFixedDecimals(receiveAmount?.data || '0', 6)}{' '}
+                    {getDisplayName((sendingToken as TokenConfig)!)}
+                  </div>
+                  <Price textAlign="right">{tokenPrice}</Price>
                 </div>
               </div>
             </div>

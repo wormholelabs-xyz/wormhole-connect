@@ -252,6 +252,7 @@ function SendTo() {
         txData.toChain,
         wallet.address,
         {},
+        TransferWallet.RECEIVING,
       );
       const result = await route.complete(signer, routeContext.receipt!);
       if (!isRedeemed(result)) {

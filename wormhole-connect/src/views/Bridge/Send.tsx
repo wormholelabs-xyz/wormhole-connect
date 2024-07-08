@@ -43,7 +43,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 import AlertBanner from 'components/AlertBanner';
 import { isGatewayChain } from 'utils/cosmos';
 import { estimateClaimGas, estimateSendGas } from 'utils/gas';
-import { validateSolanaTokenAccount } from '../../utils/transferValidation';
 import { useDebounce } from 'use-debounce';
 import { isPorticoRoute } from 'routes/porticoBridge/utils';
 import { interpretTransferError } from 'utils/errors';
@@ -81,8 +80,6 @@ function Send(props: { valid: boolean }) {
     amount,
     route,
     isTransactionInProgress,
-    foreignAsset,
-    associatedTokenAddress,
   } = transferInput;
   const [debouncedAmount] = useDebounce(amount, 500);
 
@@ -95,12 +92,6 @@ function Send(props: { valid: boolean }) {
     sending.currentAddress.toLowerCase() === sending.address.toLowerCase(),
   );
   const [sendError, setSendError] = useState('');
-  const solanaTokenAccountError = validateSolanaTokenAccount(
-    toChain,
-    foreignAsset,
-    associatedTokenAddress,
-    route,
-  );
 
   const routeContext = useContext(RouteContext);
 
@@ -280,8 +271,7 @@ function Send(props: { valid: boolean }) {
     route,
   ]);
 
-  const disabled =
-    isTransactionInProgress || !!solanaTokenAccountError || config.previewMode;
+  const disabled = isTransactionInProgress || config.previewMode;
 
   const setDestGas = useCallback(async () => {
     if (!route || !toChain) return;

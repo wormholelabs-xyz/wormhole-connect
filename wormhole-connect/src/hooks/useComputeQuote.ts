@@ -82,7 +82,6 @@ export const useComputeQuote = (props: Props): void => {
         if (!quote.success) {
           if (isActive) {
             dispatch(setReceiveAmountError(quote.error.message));
-            dispatch(setReceiveAmount('0'));
             dispatch(setReceiveNativeAmt(0));
             dispatch(setRelayerFee(0));
           }
@@ -118,6 +117,8 @@ export const useComputeQuote = (props: Props): void => {
       } catch (e: any) {
         if (isActive) {
           dispatch(setReceiveAmountError(e.message));
+          dispatch(setReceiveNativeAmt(0));
+          dispatch(setRelayerFee(0));
         }
       }
     };

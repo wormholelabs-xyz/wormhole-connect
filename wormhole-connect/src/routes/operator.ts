@@ -328,6 +328,7 @@ export class Operator {
     amount: string,
     sourceChain: ChainName | ChainId,
     destChain: ChainName | ChainId,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<boolean> {
     if (!config.routes.includes(route)) {
       return false;
@@ -340,6 +341,7 @@ export class Operator {
       amount,
       sourceChain,
       destChain,
+      options,
     );
   }
 
@@ -481,7 +483,7 @@ export class Operator {
     destToken: string,
     sendingChain: ChainName | undefined,
     recipientChain: ChainName | undefined,
-    routeOptions: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<number> {
     const r = this.getRoute(route);
     return await r.computeReceiveAmount(
@@ -490,7 +492,7 @@ export class Operator {
       destToken,
       sendingChain,
       recipientChain,
-      routeOptions,
+      options,
     );
   }
 
@@ -501,7 +503,7 @@ export class Operator {
     destToken: string,
     sendingChain: ChainName | undefined,
     recipientChain: ChainName | undefined,
-    routeOptions: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<number> {
     const r = this.getRoute(route);
     return await r.computeReceiveAmountWithFees(
@@ -510,17 +512,17 @@ export class Operator {
       destToken,
       sendingChain,
       recipientChain,
-      routeOptions,
+      options,
     );
   }
 
   async computeSendAmount(
     route: Route,
     receiveAmount: number | undefined,
-    routeOptions: any,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<number> {
     const r = this.getRoute(route);
-    return await r.computeSendAmount(receiveAmount, routeOptions);
+    return await r.computeSendAmount(receiveAmount, options);
   }
 
   async validate(
@@ -531,7 +533,7 @@ export class Operator {
     senderAddress: string,
     recipientChain: ChainName | ChainId,
     recipientAddress: string,
-    routeOptions: any,
+    options: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<boolean> {
     const r = this.getRoute(route);
     return await r.validate(
@@ -541,7 +543,7 @@ export class Operator {
       senderAddress,
       recipientChain,
       recipientAddress,
-      routeOptions,
+      options,
     );
   }
 
@@ -621,7 +623,7 @@ export class Operator {
     destToken: TokenConfig,
     amount: number,
     sendingChain: ChainName | ChainId,
-    receipientChain: ChainName | ChainId,
+    recipientChain: ChainName | ChainId,
     sendingGasEst: string,
     claimingGasEst: string,
     receiveAmount: string,
@@ -635,7 +637,7 @@ export class Operator {
       destToken,
       amount,
       sendingChain,
-      receipientChain,
+      recipientChain,
       sendingGasEst,
       claimingGasEst,
       receiveAmount,

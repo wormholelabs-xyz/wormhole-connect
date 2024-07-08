@@ -33,6 +33,7 @@ import config, { getWormholeContextV2 } from 'config';
 import { calculateUSDPrice, getDisplayName } from 'utils';
 import { BigNumber } from 'ethers5';
 import { toFixedDecimals } from 'utils/balance';
+import { TransferWallet } from 'utils/wallet';
 
 export class SDKv2Route {
   TYPE: Route;
@@ -150,11 +151,14 @@ export class SDKv2Route {
     amount: string,
     sourceChain: ChainName | ChainId,
     destChain: ChainName | ChainId,
+    options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<boolean> {
     try {
-      if (!amount) return true; // TODO: why?
+      // The route should be available when no amount is set
+      if (!amount) return true;
       const wh = await getWormholeContextV2();
       const route = new this.rc(wh);
+      console.log(options);
       if (routes.isAutomatic(route)) {
         const req = await this.createRequest(
           amount,
@@ -174,6 +178,7 @@ export class SDKv2Route {
         destToken,
         sourceChain,
         destChain,
+        options,
       );
       if (!quote.success) {
         return false;
@@ -521,6 +526,7 @@ export class SDKv2Route {
       fromChainV1,
       senderAddress,
       options,
+      TransferWallet.SENDING,
     );
 
     console.log(signer);
@@ -571,47 +577,59 @@ export class SDKv2Route {
     receiveNativeAmt?: number,
   ): Promise<TransferDisplayData> {
     const displayData = [
-      {
-        title: 'Amount',
-        value: `${!isNaN(amount) ? amount : '0'} ${getDisplayName(destToken)}`,
-        valueUSD: calculateUSDPrice(amount, tokenPrices, destToken),
-      },
+      this.createDisplayItem('Amount', amount, destToken, tokenPrices),
     ];
+
     if (relayerFee) {
-      displayData.push({
-        title: 'Relayer fee',
-        value: `${relayerFee} ${getDisplayName(token)}`,
-        valueUSD: calculateUSDPrice(relayerFee, tokenPrices, token),
-      });
+      displayData.push(
+        this.createDisplayItem('Relayer fee', relayerFee, token, tokenPrices),
+      );
     }
+
     if (receiveNativeAmt) {
+      const destChainName = config.wh.toChainName(recipientChain);
       const destGasToken =
-        config.chains[config.wh.toChainName(recipientChain)]?.gasToken;
-      displayData.push({
-        title: 'Native gas on destination',
-        value: `${toFixedDecimals(
-          receiveNativeAmt.toString(),
-          6,
-        )} ${getDisplayName(destToken)}`,
-        valueUSD: calculateUSDPrice(
-          receiveNativeAmt,
+        config.tokens[config.chains[destChainName]?.gasToken || ''];
+      displayData.push(
+        this.createDisplayItem(
+          'Native gas on destination',
+          Number(toFixedDecimals(receiveNativeAmt.toString(), 6)),
+          destGasToken,
           tokenPrices,
-          config.tokens[destGasToken || ''],
         ),
-      });
+      );
     }
+
     return displayData;
+  }
+
+  createDisplayItem(
+    title: string,
+    amount: number,
+    token: TokenConfig,
+    tokenPrices: TokenPrices,
+  ) {
+    return {
+      title,
+      value: `${!isNaN(amount) ? amount : '0'} ${getDisplayName(token)}`,
+      valueUSD: calculateUSDPrice(amount, tokenPrices, token),
+    };
   }
 
   async getTransferSourceInfo<T extends TransferInfoBaseParams>(
     params: T,
   ): Promise<TransferDisplayData> {
-    return [
-      {
-        title: 'test',
-        value: 'testvalue',
-      },
+    const txData = params.txData as ParsedMessage;
+    const token = config.tokens[txData.tokenKey];
+    const displayData = [
+      this.createDisplayItem(
+        'Amount',
+        Number(txData.amount),
+        token,
+        params.tokenPrices,
+      ),
     ];
+    return displayData;
   }
 
   async getTransferDestInfo<T extends TransferDestInfoBaseParams>(
@@ -619,12 +637,7 @@ export class SDKv2Route {
   ): Promise<TransferDestInfo> {
     return {
       route: this.TYPE,
-      displayData: [
-        {
-          title: 'test',
-          value: 'testvalue',
-        },
-      ],
+      displayData: [],
     };
   }
 
