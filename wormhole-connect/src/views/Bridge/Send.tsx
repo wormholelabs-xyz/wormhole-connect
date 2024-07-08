@@ -80,6 +80,7 @@ function Send(props: { valid: boolean }) {
     amount,
     route,
     isTransactionInProgress,
+    receiveAmount,
   } = transferInput;
   const [debouncedAmount] = useDebounce(amount, 500);
 
@@ -186,6 +187,7 @@ function Send(props: { valid: boolean }) {
       // because they might be different than what we have in memory (relayer fee)
       // or we may not have all the data (e.g. block)
       // TODO: we don't need all of these details
+      // The SDK should provide a way to get the details from the chain (e.g. route.lookupSourceTxDetails)
       dispatch(
         setTxDetails({
           sendTx: txId,
@@ -203,17 +205,15 @@ function Send(props: { valid: boolean }) {
             config.wh.toChainId(fromChain!),
             getWrappedTokenId(sendToken),
           ),
-          receivedTokenKey: config.tokens[destToken].key!, // TODO: wrong for non-token bridge routes
+          receivedTokenKey: config.tokens[destToken].key!, // TODO: possibly wrong (e..g if portico swap fails)
           emitterAddress: undefined,
           sequence: undefined,
           block: 0,
           gasFee: undefined,
           payload: undefined,
           inputData: undefined,
-          relayerPayloadId: undefined,
-          to: undefined,
-          relayerFee: undefined,
-          toNativeTokenAmount: undefined,
+          relayerFee: relayerFee?.toString() || '',
+          receiveAmount: receiveAmount.data || '',
         }),
       );
       routeContext.setRoute(sdkRoute);

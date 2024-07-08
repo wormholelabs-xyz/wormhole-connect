@@ -1,11 +1,10 @@
 /*import { PublicKey } from '@solana/web3.js';*/
 import { ChainId, ChainName, TokenId } from 'sdklegacy';
+import { ParsedMessage } from 'utils/sdk';
 
 import config from 'config';
 import { TokenConfig, Route } from 'config/types';
 import {
-  UnsignedMessage,
-  SignedMessage,
   TransferDisplayData,
   TransferInfoBaseParams,
   TransferDestInfo,
@@ -607,16 +606,6 @@ export class Operator {
     );
   }
 
-  async redeem(
-    route: Route,
-    destChain: ChainName | ChainId,
-    signed: SignedMessage,
-    payer: string,
-  ): Promise<string> {
-    const r = this.getRoute(route);
-    return await r.redeem(destChain, signed, payer);
-  }
-
   async getPreview(
     route: Route,
     token: TokenConfig,
@@ -687,7 +676,7 @@ export class Operator {
 
   tryFetchRedeemTx(
     route: Route,
-    txData: UnsignedMessage,
+    txData: ParsedMessage,
   ): Promise<string | undefined> {
     const r = this.getRoute(route);
     return r.tryFetchRedeemTx(txData);

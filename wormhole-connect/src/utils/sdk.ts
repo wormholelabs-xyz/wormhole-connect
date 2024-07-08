@@ -2,6 +2,7 @@ import { BigNumber } from 'ethers5';
 import { ChainId, ChainName, TokenId } from 'sdklegacy';
 import { getWrappedTokenId } from '.';
 import config from 'config';
+import { chainToPlatform } from '@wormhole-foundation/sdk';
 
 export enum PayloadType {
   Manual = 1,
@@ -28,13 +29,8 @@ export interface ParsedMessage {
   gasFee?: string;
   payload?: string;
   inputData?: string;
-}
-
-export interface ParsedRelayerMessage extends ParsedMessage {
-  relayerPayloadId: number;
-  to: string;
-  relayerFee: string;
-  toNativeTokenAmount: string;
+  receiveAmount?: string;
+  relayerFee?: string;
 }
 
 export const formatAddress = (chain: ChainName | ChainId, address: string) => {
@@ -151,7 +147,8 @@ export const EVMChainNames = [
 ];
 
 export const isEvmChain = (chain: ChainName | ChainId) => {
-  return EVMChainNames.includes(config.wh.toChainName(chain));
+  const sdkv2chain = config.sdkConverter.toChainV2(chain);
+  return chainToPlatform.get(sdkv2chain) === 'Evm';
 };
 
 export const toChainId = (chain: ChainName | ChainId) => {

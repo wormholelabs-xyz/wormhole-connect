@@ -33,7 +33,6 @@ import { RenderRows } from 'components/RenderRows';
 import Spacer from 'components/Spacer';
 import WalletsModal from '../WalletModal';
 import Header from './Header';
-import { estimateClaimGas } from 'utils/gas';
 import { isGatewayChain } from '../../utils/cosmos';
 import { PayloadType /*solanaContext*/ } from '../../utils/sdk';
 import { AssociatedTokenWarning } from '../Bridge/Inputs/TokenWarnings';
@@ -88,7 +87,6 @@ function SendTo() {
     redeemTx,
     transferComplete,
     route: routeName,
-    signedMessage,
   } = useSelector((state: RootState) => state.redeem);
   const txData = useSelector((state: RootState) => state.redeem.txData)!;
   const wallet = useSelector((state: RootState) => state.wallet.receiving);
@@ -127,9 +125,11 @@ function SendTo() {
 
   // get the redeem tx, for automatic transfers only
   const getRedeemTx = useCallback(async () => {
+    // TODO: fetch redeem tx from wormholescan or sdk
+    /*
     if (!routeName) return;
     if (redeemTx) return redeemTx;
-    if (signedMessage && routeName) {
+    if (routeName) {
       const redeemedTransactionHash = await RouteOperator.tryFetchRedeemTx(
         routeName,
         signedMessage,
@@ -139,7 +139,9 @@ function SendTo() {
         return redeemedTransactionHash;
       }
     }
-  }, [redeemTx, routeName, signedMessage, dispatch]);
+    */
+    return undefined;
+  }, [redeemTx, routeName, dispatch]);
 
   useEffect(() => {
     if (!txData || !routeName) return;
@@ -150,14 +152,6 @@ function SendTo() {
       } catch (e) {
         console.error(`could not fetch redeem event:\n${e}`);
       }
-      let gasEstimate;
-      if (!receiveTx) {
-        gasEstimate = await estimateClaimGas(
-          routeName,
-          txData.toChain,
-          signedMessage,
-        );
-      }
       dispatch(setTransferDestInfo(undefined));
       try {
         const info = await RouteOperator.getTransferDestInfo(routeName, {
@@ -165,7 +159,6 @@ function SendTo() {
           tokenPrices: prices,
           receiveTx,
           transferComplete,
-          gasEstimate,
         });
         dispatch(setTransferDestInfo(info));
       } catch (e) {
@@ -173,15 +166,7 @@ function SendTo() {
       }
     };
     populate();
-  }, [
-    transferComplete,
-    getRedeemTx,
-    txData,
-    routeName,
-    signedMessage,
-    dispatch,
-    data,
-  ]);
+  }, [transferComplete, getRedeemTx, txData, routeName, dispatch, data]);
 
   useEffect(() => {
     setIsConnected(checkConnection());

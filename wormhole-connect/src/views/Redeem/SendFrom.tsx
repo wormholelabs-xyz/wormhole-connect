@@ -7,16 +7,10 @@ import { RootState } from 'store';
 import { TransferDisplayData } from 'routes';
 import RouteOperator from 'routes/operator';
 
-import Confirmations from './Confirmations';
 import Header from './Header';
 
 function SendFrom() {
-  const { txData, route, signedMessage } = useSelector(
-    (state: RootState) => state.redeem,
-  );
-  const transferComplete = useSelector(
-    (state: RootState) => state.redeem.transferComplete,
-  );
+  const { txData, route } = useSelector((state: RootState) => state.redeem);
   const {
     usdPrices: { data },
   } = useSelector((state: RootState) => state.tokenPrices);
@@ -43,9 +37,10 @@ function SendFrom() {
         />
         <RenderRows rows={rows} />
       </InputContainer>
-      {!transferComplete && !signedMessage && (
+      {/* TODO: disabled until txData.block is available */}
+      {/*!transferComplete && !signedMessage && (
         <Confirmations chain={txData!.fromChain} blockHeight={txData!.block} />
-      )}
+      )*/}
     </div>
   );
 }

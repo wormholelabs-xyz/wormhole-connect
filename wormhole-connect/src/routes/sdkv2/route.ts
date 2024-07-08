@@ -13,14 +13,13 @@ import { ChainId, ChainName, TokenId as TokenIdV1 } from 'sdklegacy';
 import { Route, TokenConfig } from 'config/types';
 import {
   RelayerFee,
-  SignedMessage,
   TransferDestInfo,
   TransferDestInfoBaseParams,
   TransferDisplayData,
   TransferInfoBaseParams,
 } from 'routes/types';
 import { TokenPrices } from 'store/tokenPrices';
-import { ParsedMessage, ParsedRelayerMessage } from 'utils/sdk';
+import { ParsedMessage } from 'utils/sdk';
 
 import { SDKv2Signer } from './signer';
 
@@ -557,7 +556,7 @@ export class SDKv2Route {
 
   public async redeem(
     destChain: ChainName | ChainId,
-    messageInfo: SignedMessage,
+    messageInfo: any,
     recipient: string,
   ): Promise<string> {
     throw new Error('Method not implemented.');
@@ -629,16 +628,40 @@ export class SDKv2Route {
         params.tokenPrices,
       ),
     ];
+    const relayerFee = Number.parseFloat(txData.relayerFee || '0');
+    if (relayerFee > 0) {
+      displayData.push(
+        this.createDisplayItem(
+          'Relayer fee',
+          relayerFee,
+          token,
+          params.tokenPrices,
+        ),
+      );
+    }
     return displayData;
   }
 
   async getTransferDestInfo<T extends TransferDestInfoBaseParams>(
     params: T,
   ): Promise<TransferDestInfo> {
-    return {
+    const info: TransferDestInfo = {
       route: this.TYPE,
       displayData: [],
     };
+    const txData = params.txData as ParsedMessage;
+    const token = config.tokens[txData.tokenKey];
+    if (txData.receiveAmount) {
+      info.displayData.push(
+        this.createDisplayItem(
+          'Amount',
+          Number(txData.receiveAmount),
+          token,
+          params.tokenPrices,
+        ),
+      );
+    }
+    return info;
   }
 
   async getRelayerFee(
@@ -679,9 +702,7 @@ export class SDKv2Route {
     return 'test';
   }
 
-  tryFetchRedeemTx(
-    txData: ParsedMessage | ParsedRelayerMessage,
-  ): Promise<string | undefined> {
+  tryFetchRedeemTx(txData: ParsedMessage): Promise<string | undefined> {
     throw new Error('Method not implemented.');
   }
 }
