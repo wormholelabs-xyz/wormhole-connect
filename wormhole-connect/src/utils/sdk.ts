@@ -13,7 +13,6 @@ export interface ParsedMessage {
   sendTx: string;
   sender: string;
   amount: string;
-  payloadID: number;
   recipient: string;
   toChain: ChainName;
   fromChain: ChainName;
@@ -31,6 +30,7 @@ export interface ParsedMessage {
   inputData?: string;
   receiveAmount?: string;
   relayerFee?: string;
+  receiveNativeAmount?: number;
 }
 
 export const formatAddress = (chain: ChainName | ChainId, address: string) => {
@@ -110,45 +110,9 @@ export const isAcceptedToken = async (tokenId: TokenId): Promise<boolean> => {
   return accepted;
 };
 
-// copied from @certusone/wormhole-sdk
-// TODO SDKV2
-export const EVMChainNames = [
-  'ethereum',
-  'bsc',
-  'polygon',
-  'avalanche',
-  'oasis',
-  'aurora',
-  'fantom',
-  'karura',
-  'acala',
-  'klaytn',
-  'celo',
-  'moonbeam',
-  'neon',
-  'arbitrum',
-  'optimism',
-  'gnosis',
-  'base',
-  'rootstock',
-  'scroll',
-  'mantle',
-  'blast',
-  'xlayer',
-  'linea',
-  'berachain',
-  'seievm',
-  'sepolia',
-  'arbitrum_sepolia',
-  'base_sepolia',
-  'optimism_sepolia',
-  'holesky',
-  'polygon_sepolia',
-];
-
 export const isEvmChain = (chain: ChainName | ChainId) => {
-  const sdkv2chain = config.sdkConverter.toChainV2(chain);
-  return chainToPlatform.get(sdkv2chain) === 'Evm';
+  const chainV2 = config.sdkConverter.toChainV2(chain);
+  return chainToPlatform.get(chainV2) === 'Evm';
 };
 
 export const toChainId = (chain: ChainName | ChainId) => {

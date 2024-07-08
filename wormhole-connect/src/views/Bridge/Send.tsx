@@ -87,7 +87,7 @@ function Send(props: { valid: boolean }) {
   const wallet = useSelector((state: RootState) => state.wallet);
   const { sending, receiving } = wallet;
   const relay = useSelector((state: RootState) => state.relay);
-  const { toNativeToken, relayerFee } = relay;
+  const { toNativeToken, relayerFee, receiveNativeAmt } = relay;
   const portico = useSelector((state: RootState) => state.porticoBridge);
   const [isConnected, setIsConnected] = useState(
     sending.currentAddress.toLowerCase() === sending.address.toLowerCase(),
@@ -175,13 +175,12 @@ function Send(props: { valid: boolean }) {
         details: transferDetails,
       });
 
-      let txId = '';
-
-      // SDKv2 Receipt
-      // SDKv2Route handles waiting for completion internally so there's nothing else to do here
       const [sdkRoute, receipt] = sendResult;
+      let txId = '';
       if ('originTxs' in receipt) {
         txId = receipt.originTxs[receipt.originTxs.length - 1].txid;
+      } else {
+        throw new Error("Can't find txid in receipt");
       }
       // TODO: SDKV2 set the tx details using on-chain data
       // because they might be different than what we have in memory (relayer fee)
@@ -193,7 +192,6 @@ function Send(props: { valid: boolean }) {
           sendTx: txId,
           sender: sending.address,
           amount,
-          payloadID: sdkRoute.IS_AUTOMATIC ? 3 : 1, // TODO: don't need this
           recipient: receiving.address,
           toChain: config.sdkConverter.toChainNameV1(receipt.to),
           fromChain: config.sdkConverter.toChainNameV1(receipt.from),
@@ -214,6 +212,7 @@ function Send(props: { valid: boolean }) {
           inputData: undefined,
           relayerFee: relayerFee?.toString() || '',
           receiveAmount: receiveAmount.data || '',
+          receiveNativeAmount: receiveNativeAmt,
         }),
       );
       routeContext.setRoute(sdkRoute);

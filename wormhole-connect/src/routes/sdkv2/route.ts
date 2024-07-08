@@ -212,13 +212,9 @@ export class SDKv2Route {
       return !!supportedTokens.find((tokenId) => {
         return isSameToken(tokenId, tokenV2);
       });
-    } catch (e: any) {
-      // Route not supported for this chain
-      if (e.message.includes('No protocols registered')) {
-        return false;
-      } else {
-        throw e;
-      }
+    } catch (e) {
+      console.error(e);
+      return false;
     }
   }
 
@@ -249,6 +245,7 @@ export class SDKv2Route {
         return isSameToken(tokenId, destTokenV2);
       });
     } catch (e) {
+      console.error(e);
       return false;
     }
   }
@@ -657,6 +654,16 @@ export class SDKv2Route {
           'Amount',
           Number(txData.receiveAmount),
           token,
+          params.tokenPrices,
+        ),
+      );
+    }
+    if (txData.receiveNativeAmount && txData.receiveNativeAmount > 0) {
+      info.displayData.push(
+        this.createDisplayItem(
+          'Native gas amount',
+          Number(txData.receiveNativeAmount.toFixed(6)),
+          config.tokens[config.chains[txData.toChain]?.gasToken || ''],
           params.tokenPrices,
         ),
       );

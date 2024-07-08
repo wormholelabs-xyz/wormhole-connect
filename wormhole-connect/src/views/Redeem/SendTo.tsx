@@ -15,9 +15,8 @@ import {
   setTransferDestInfo,
   setRedeemTx,
   setTransferComplete,
-  setTxDetails,
 } from 'store/redeem';
-import { displayAddress, getTokenById /*getWrappedTokenId*/ } from 'utils';
+import { displayAddress /*getWrappedTokenId*/ } from 'utils';
 import RouteOperator from 'routes/operator';
 import {
   TransferWallet,
@@ -34,9 +33,6 @@ import Spacer from 'components/Spacer';
 import WalletsModal from '../WalletModal';
 import Header from './Header';
 import { isGatewayChain } from '../../utils/cosmos';
-import { PayloadType /*solanaContext*/ } from '../../utils/sdk';
-import { AssociatedTokenWarning } from '../Bridge/Inputs/TokenWarnings';
-import { Route } from 'config/types';
 import SwitchToManualClaim from './SwitchToManualClaim';
 import { isPorticoRoute } from 'routes/porticoBridge/utils';
 import { getTokenDetails } from 'telemetry';
@@ -44,42 +40,6 @@ import { interpretTransferError } from 'utils/errors';
 import { RouteContext } from 'contexts/RouteContext';
 import { isRedeemed, routes } from '@wormhole-foundation/sdk';
 import { SDKv2Signer } from 'routes/sdkv2/signer';
-
-function AssociatedTokenAlert() {
-  const dispatch = useDispatch();
-  const txData = useSelector((state: RootState) => state.redeem.txData)!;
-  const wallet = useSelector((state: RootState) => state.wallet.receiving);
-
-  const createAssociatedTokenAccount = useCallback(async () => {
-    const receivedToken = config.tokens[txData.receivedTokenKey];
-    const token =
-      receivedToken?.nativeChain === 'solana'
-        ? receivedToken
-        : getTokenById(txData.tokenId);
-    if (!token) return;
-    /*
-     * TODO SDKV2
-    const tokenId = getWrappedTokenId(token);
-    const tx = await solanaContext().createAssociatedTokenAccount(
-      tokenId,
-      wallet.address,
-      'finalized',
-    );
-    // if `tx` is null it means the account already exists
-    if (!tx) return;
-    await signAndSendTransaction('solana', tx, TransferWallet.RECEIVING);
-     */
-    dispatch(setTxDetails({ ...txData, recipient: wallet.address }));
-  }, [txData, wallet.address, dispatch]);
-
-  const content = (
-    <AssociatedTokenWarning
-      createAssociatedTokenAccount={createAssociatedTokenAccount}
-    />
-  );
-
-  return <AlertBanner warning show={!!wallet.address} content={content} />;
-}
 
 function SendTo() {
   const dispatch = useDispatch();
@@ -280,12 +240,6 @@ function SendTo() {
     }
   };
 
-  // sometimes the ATA might be closed even after the transfer began
-  const missingATA =
-    txData.recipient === '' &&
-    txData.toChain === 'solana' &&
-    txData.payloadID === PayloadType.Manual;
-
   const loading = !AUTOMATIC_DEPOSIT
     ? inProgress && !transferComplete
     : !transferComplete && !manualClaim;
@@ -295,17 +249,20 @@ function SendTo() {
       : claimError
       ? 'Error please retry . . .'
       : 'Claim below';
-  const showSwitchToManualClaim =
-    !transferComplete &&
-    (routeName === Route.Relay || isPorticoRoute(routeName as Route));
-  let manualClaimTitle = '';
-  if (showSwitchToManualClaim) {
-    manualClaimTitle =
-      'This option avoids the relayer fee but requires you to pay the gas fee on the destination chain.';
-    if (routeName === Route.Relay) {
-      manualClaimTitle += ' You will not receive any native gas.';
-    }
-  }
+  // TODO: add manual claim to automatic route in SDK
+  const showSwitchToManualClaim = false;
+  const manualClaimTitle = '';
+  //const showSwitchToManualClaim =
+  //  !transferComplete &&
+  //  (routeName === Route.Relay || isPorticoRoute(routeName as Route));
+  //let manualClaimTitle = '';
+  //if (showSwitchToManualClaim) {
+  //  manualClaimTitle =
+  //    'This option avoids the relayer fee but requires you to pay the gas fee on the destination chain.';
+  //  if (routeName === Route.Relay) {
+  //    manualClaimTitle += ' You will not receive any native gas.';
+  //  }
+  //}
 
   const { previewMode } = config;
 
@@ -332,13 +289,6 @@ function SendTo() {
         </>
         <RenderRows rows={transferDestInfo?.displayData || []} />
       </InputContainer>
-
-      {missingATA && (
-        <>
-          <Spacer height={8} />
-          <AssociatedTokenAlert />
-        </>
-      )}
 
       {/* Claim button for manual transfers */}
       {!transferComplete && (!AUTOMATIC_DEPOSIT || manualClaim) && (

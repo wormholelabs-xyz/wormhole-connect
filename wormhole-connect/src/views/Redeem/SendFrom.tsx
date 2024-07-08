@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import InputContainer from 'components/InputContainer';
@@ -8,6 +8,9 @@ import { TransferDisplayData } from 'routes';
 import RouteOperator from 'routes/operator';
 
 import Header from './Header';
+import Confirmations from './Confirmations';
+import { RouteContext } from 'contexts/RouteContext';
+import { TransferState } from '@wormhole-foundation/sdk';
 
 function SendFrom() {
   const { txData, route } = useSelector((state: RootState) => state.redeem);
@@ -16,6 +19,10 @@ function SendFrom() {
   } = useSelector((state: RootState) => state.tokenPrices);
   const prices = data || {};
   const [rows, setRows] = useState([] as TransferDisplayData);
+  const routeContext = useContext(RouteContext);
+  const isAttested =
+    routeContext.receipt &&
+    routeContext.receipt.state >= TransferState.Attested;
 
   useEffect(() => {
     if (!txData || !route) return;
@@ -37,10 +44,9 @@ function SendFrom() {
         />
         <RenderRows rows={rows} />
       </InputContainer>
-      {/* TODO: disabled until txData.block is available */}
-      {/*!transferComplete && !signedMessage && (
+      {!isAttested && (
         <Confirmations chain={txData!.fromChain} blockHeight={txData!.block} />
-      )*/}
+      )}
     </div>
   );
 }

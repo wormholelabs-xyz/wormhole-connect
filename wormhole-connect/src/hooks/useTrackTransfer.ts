@@ -44,9 +44,9 @@ const useTrackTransfer = () => {
               console.log('Updated receipt:', currentReceipt.state);
               if (isCompleted(currentReceipt)) {
                 dispatch(setTransferComplete(true));
-                const txid = currentReceipt.destinationTxs?.[0]?.txid;
-                if (txid) {
-                  dispatch(setRedeemTx(txid));
+                const lastTx = currentReceipt.destinationTxs?.slice(-1)[0];
+                if (lastTx) {
+                  dispatch(setRedeemTx(lastTx.txid));
                 }
               }
               stateChanged = true;
