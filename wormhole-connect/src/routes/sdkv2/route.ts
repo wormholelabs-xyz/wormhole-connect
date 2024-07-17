@@ -8,6 +8,7 @@ import {
   isSameToken,
   TokenId as TokenIdV2,
   TransferState,
+  TransactionId,
 } from '@wormhole-foundation/sdk';
 import { ChainId, ChainName, TokenId as TokenIdV1 } from 'sdklegacy';
 import { Route, TokenConfig } from 'config/types';
@@ -18,15 +19,12 @@ import {
   TransferInfoBaseParams,
 } from 'routes/types';
 import { TokenPrices } from 'store/tokenPrices';
-import { ParsedMessage, toChainName } from 'utils/sdk';
+import { toChainName } from 'utils/sdk';
+import { TransferInfo } from 'utils/sdkv2';
 
 import { SDKv2Signer } from './signer';
 
-import {
-  amount,
-  SourceInitiatedTransferReceipt,
-  SourceFinalizedTransferReceipt,
-} from '@wormhole-foundation/sdk';
+import { amount } from '@wormhole-foundation/sdk';
 import config, { getWormholeContextV2 } from 'config';
 import { calculateUSDPrice, getDisplayName, getWrappedToken } from 'utils';
 import { TransferWallet } from 'utils/wallet';
@@ -181,7 +179,7 @@ export class SDKv2Route {
         return false;
       }
     } catch (e) {
-      console.error(e);
+      console.error(`Error thrown in isRouteAvailable`, e);
       // TODO is this the right place to try/catch these?
       // or deeper inside SDKv2Route?
       return false;
@@ -461,12 +459,7 @@ export class SDKv2Route {
     recipientAddress: string,
     destToken: string,
     options?: routes.AutomaticTokenBridgeRoute.Options,
-  ): Promise<
-    [
-      routes.Route<Network>,
-      SourceInitiatedTransferReceipt | SourceFinalizedTransferReceipt<any>,
-    ]
-  > {
+  ): Promise<[routes.Route<Network>, routes.Receipt]> {
     const [route, quote, req] = await this.getQuote(
       amount.toString(),
       sourceToken.key,
@@ -510,15 +503,12 @@ export class SDKv2Route {
 
     // Otherwise track the transfer until it reaches a final state
     for await (receipt of route.track(receipt, 120 * 1000)) {
-      if (
-        receipt.state == TransferState.SourceInitiated ||
-        receipt.state == TransferState.SourceFinalized
-      ) {
+      if (receipt.state >= TransferState.SourceInitiated) {
         return [route, receipt];
       }
     }
 
-    throw new Error('Never got a SourceInitiate state in receipt');
+    throw new Error('Never got a SourceInitiated state in receipt');
   }
 
   async getPreview(
@@ -585,7 +575,7 @@ export class SDKv2Route {
   async getTransferSourceInfo<T extends TransferInfoBaseParams>(
     params: T,
   ): Promise<TransferDisplayData> {
-    const txData = params.txData as ParsedMessage;
+    const txData = params.txData as TransferInfo;
     const token = config.tokens[txData.tokenKey];
     const displayData = [
       this.createDisplayItem(
@@ -616,7 +606,7 @@ export class SDKv2Route {
       route: this.TYPE,
       displayData: [],
     };
-    const txData = params.txData as ParsedMessage;
+    const txData = params.txData as TransferInfo;
     const token = config.tokens[txData.tokenKey];
     if (txData.receiveAmount) {
       info.displayData.push(
@@ -649,7 +639,17 @@ export class SDKv2Route {
     return 'test';
   }
 
-  tryFetchRedeemTx(txData: ParsedMessage): Promise<string | undefined> {
+  tryFetchRedeemTx(txData: TransferInfo): Promise<string | undefined> {
     throw new Error('Method not implemented.');
+  }
+
+  async resumeIfManual(tx: TransactionId): Promise<routes.Receipt | null> {
+    const wh = await getWormholeContextV2();
+    const route = new this.rc(wh);
+    if (routes.isManual(route)) {
+      return route.resume(tx);
+    } else {
+      return null;
+    }
   }
 }
