@@ -69,6 +69,7 @@ export enum Route {
   wstETHBridge = 'wstETHBridge',
   NttManual = 'nttManual',
   NttRelay = 'nttRelay',
+  Mayan = 'mayan',
 }
 
 // Used in bridging components
