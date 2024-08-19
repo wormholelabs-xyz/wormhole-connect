@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 
 import { setToken, setSupportedSourceTokens } from 'store/transferInput';
 
-import type { Route, TokenConfig } from 'config/types';
+import type { TokenConfig } from 'config/types';
 
 import RouteOperator from 'routes/operator';
 
@@ -15,7 +15,7 @@ type Props = {
   sourceToken: string;
   destChain: Chain | undefined;
   destToken: string;
-  route: Route | undefined;
+  route?: string;
 };
 
 export const useComputeSourceTokens = (props: Props): void => {

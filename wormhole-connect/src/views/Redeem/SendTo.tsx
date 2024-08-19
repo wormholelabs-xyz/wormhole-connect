@@ -34,7 +34,6 @@ import WalletsModal from '../WalletModal';
 import Header from './Header';
 import { isGatewayChain } from '../../utils/cosmos';
 import SwitchToManualClaim from './SwitchToManualClaim';
-import { isPorticoRoute } from 'routes/porticoBridge/utils';
 import { getTokenDetails } from 'telemetry';
 import { interpretTransferError } from 'utils/errors';
 import { RouteContext } from 'contexts/RouteContext';
@@ -138,8 +137,9 @@ function SendTo() {
     return (
       route.AUTOMATIC_DEPOSIT ||
       isGatewayChain(txData.toChain) ||
-      txData.toChain === 'Sei' ||
-      isPorticoRoute(route.TYPE)
+      txData.toChain === 'Sei'
+      //TODO SDKV2 remove???
+      //isPorticoRoute(route.TYPE)
     );
   }, [routeName, txData]);
 

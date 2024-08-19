@@ -35,13 +35,13 @@ const useStyles = makeStyles()((theme: any) => ({
 }));
 
 type Props = {
-  config: RouteData;
+  route: RouteData;
   available: boolean;
   isSelected: boolean;
   error?: string;
   destinationGasDrop?: number;
   title?: string;
-  onSelect?: (route: Route) => void;
+  onSelect?: (route: string) => void;
 };
 
 const SingleRoute = (props: Props) => {
@@ -60,8 +60,6 @@ const SingleRoute = (props: Props) => {
 
   const { prices: tokenPrices } = useFetchTokenPricesV2();
 
-  const { name, route: routeName } = props.config;
-
   // Compute the quotes for this route
   const {
     eta: estimatedTime,
@@ -74,7 +72,7 @@ const SingleRoute = (props: Props) => {
     sourceToken,
     destToken,
     amount,
-    route: routeName,
+    route: props.route.name,
     toNativeToken,
   });
 
@@ -158,34 +156,14 @@ const SingleRoute = (props: Props) => {
   );
 
   const showWarning = useMemo(() => {
-    if (!props.config.route) {
+    if (!props.route.name) {
       return false;
     }
 
-    const routeConfig = RouteOperator.getRoute(props.config.route);
+    const routeConfig = RouteOperator.getRoute(props.route.name);
 
     return !routeConfig.AUTOMATIC_DEPOSIT;
-  }, [props.config.route]);
-
-  const errorMessage = useMemo(() => {
-    if (!props.error) {
-      return null;
-    }
-
-    return (
-      <>
-        <Divider flexItem sx={{ marginTop: '8px' }} />
-        <Stack direction="row" alignItems="center">
-          <WarningIcon htmlColor={theme.palette.error.main} />
-          <Stack sx={{ padding: '16px' }}>
-            <Typography color={theme.palette.error.main} fontSize={14}>
-              {props.error}
-            </Typography>
-          </Stack>
-        </Stack>
-      </>
-    );
-  }, [props.error]);
+  }, [props.route.name, destChain]);
 
   const warningMessage = useMemo(() => {
     if (!showWarning) {
@@ -258,14 +236,14 @@ const SingleRoute = (props: Props) => {
     return <Typography>{receiveAmountPrice}</Typography>;
   }, [destTokenConfig, receiveAmount, tokenPrices]);
 
-  if (isEmptyObject(props.config)) {
+  if (isEmptyObject(props.route)) {
     return <></>;
   }
 
   return (
-    <div key={name} className={classes.container}>
+    <div key={props.route.name} className={classes.container}>
       <Typography fontSize={16} paddingBottom={0} width="100%" textAlign="left">
-        {props.title || routeTitle}
+        {props.title || props.route.displayName}
       </Typography>
       <Card
         className={classes.card}
@@ -281,13 +259,13 @@ const SingleRoute = (props: Props) => {
           disabled={!props.available}
           disableTouchRipple
           onClick={() => {
-            props.onSelect?.(routeName);
+            props.onSelect?.(props.route.name);
           }}
         >
           <CardHeader
-            avatar={<TokenIcon icon={destTokenConfig.icon} height={36} />}
-            title={routeCardHeader}
-            subheader={routeCardSubHeader}
+            avatar={<Avatar>{props.route.icon()}</Avatar>}
+            title={routeTitle}
+            subheader={routeSubHeader}
           />
           <CardContent>
             <Stack justifyContent="space-between">

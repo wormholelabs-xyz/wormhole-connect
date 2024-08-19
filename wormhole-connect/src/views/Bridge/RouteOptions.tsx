@@ -10,7 +10,6 @@ import { millisToMinutesAndSeconds } from 'utils/transferValidation';
 import RouteOperator from 'routes/operator';
 import { calculateUSDPrice, getDisplayName } from 'utils';
 import config from 'config';
-import { Route } from 'config/types';
 import { RoutesConfig, RouteData } from 'config/routes';
 
 import BridgeCollapse, { CollapseControlStyle } from './Collapse';
@@ -18,7 +17,6 @@ import TokenIcon from 'icons/TokenIcons';
 import ArrowRightIcon from 'icons/ArrowRight';
 import Options from 'components/Options';
 import { isGatewayChain } from 'utils/cosmos';
-import { isPorticoRoute } from 'routes/porticoBridge/utils';
 import Price from 'components/Price';
 import { finality, Chain } from '@wormhole-foundation/sdk';
 import useAvailableRoutes from 'hooks/useAvailableRoutes';
@@ -215,7 +213,7 @@ function RouteOption(props: { route: RouteData; disabled: boolean }) {
         const routeOptions = { nativeGas: toNativeToken };
 
         const receiveAmt = await RouteOperator.computeReceiveAmountWithFees(
-          props.route.route,
+          props.route.name,
           Number.parseFloat(amount),
           token,
           destToken,
@@ -263,19 +261,9 @@ function RouteOption(props: { route: RouteData; disabled: boolean }) {
   const toTokenIcon = toTokenConfig && (
     <TokenIcon icon={toTokenConfig.icon} height={20} />
   );
-  const routeName = props.route.route;
-
   const route = useMemo(() => {
-    return RouteOperator.getRoute(routeName);
-  }, [routeName]);
-
-  const isAutomatic = useMemo(
-    () =>
-      route.AUTOMATIC_DEPOSIT ||
-      (toChain && (isGatewayChain(toChain) || toChain === 'Sei')) ||
-      isPorticoRoute(route.TYPE),
-    [route, toChain],
-  );
+    return RouteOperator.getRoute(props.route.name);
+  }, [props.route.name]);
 
   return (
     fromTokenConfig &&
@@ -291,13 +279,13 @@ function RouteOption(props: { route: RouteData; disabled: boolean }) {
           className={`${classes.route} ${
             props.disabled ? classes.disabled : ''
           }`}
-          data-testid={`route-option-${props.route.route}`}
+          data-testid={`route-option-${props.route.name}`}
         >
           <div className={classes.routeLeft}>
             <div className={classes.routeTitle}>
-              {props.route.name}
+              {props.route.displayName}
               {/* TODO: isAutomatic to route and use transfer parameters to decide */}
-              {isAutomatic ? (
+              {route.AUTOMATIC_DEPOSIT ? (
                 <Chip
                   label="Receive tokens automatically"
                   color="success"
@@ -369,7 +357,7 @@ function RouteOptions() {
   useAvailableRoutes();
 
   const onSelect = useCallback(
-    (value: Route) => {
+    (value: string) => {
       if (routeStates && routeStates.some((rs) => rs.name === value)) {
         const route = routeStates.find((rs) => rs.name === value);
         if (route?.available) dispatch(setTransferRoute(value));
@@ -402,10 +390,7 @@ function RouteOptions() {
             key: name,
             disabled: !available,
             child: (
-              <RouteOption
-                disabled={!available}
-                route={RoutesConfig[name as Route]}
-              />
+              <RouteOption disabled={!available} route={RoutesConfig[name]} />
             ),
           };
         })}

@@ -2,7 +2,7 @@ import { TokenId } from 'sdklegacy';
 import { TransferInfo } from 'utils/sdkv2';
 
 import config from 'config';
-import { TokenConfig, Route } from 'config/types';
+import { TokenConfig } from 'config/types';
 import {
   TransferDisplayData,
   TransferInfoBaseParams,
@@ -17,18 +17,27 @@ import {
   TransactionId,
 } from '@wormhole-foundation/sdk';
 
-import { getRoute } from './mappings';
 import SDKv2Route from './sdkv2';
 import { RelayerFee } from 'store/relay';
 
 export interface TxInfo {
-  route: Route;
+  route: string;
   receipt: routes.Receipt;
 }
 
+type forEachCallback<T> = (name: string, route: SDKv2Route) => T;
+
 export class Operator {
-  getRoute(route: Route): SDKv2Route {
-    return getRoute(route);
+  getRoute(name: string): SDKv2Route {
+    return config.routes[name];
+  }
+
+  async forEach<T>(callback: forEachCallback<T>): Promise<T[]> {
+    return Promise.all(
+      Object.keys(config.routes).map((name) =>
+        callback(name, config.routes[name]),
+      ),
+    );
   }
 
   async resumeFromTx(tx: TransactionId): Promise<TxInfo | null> {
@@ -47,16 +56,15 @@ export class Operator {
       // Promise.race, because we only want to resolve under specific conditions.
       //
       // The assumption is that at most one route will produce a receipt.
-      const totalAttemptsToMake = config.routes.length;
+      const totalAttemptsToMake = Object.keys(config.routes).length;
       let failedAttempts = 0;
 
-      for (const route of config.routes) {
-        const r = this.getRoute(route as Route);
-
-        r.resumeIfManual(tx)
+      this.forEach((name, route) => {
+        route
+          .resumeIfManual(tx)
           .then((receipt) => {
             if (receipt !== null) {
-              resolve({ route: route as Route, receipt });
+              resolve({ route: name, receipt });
             } else {
               failedAttempts += 1;
             }
@@ -86,12 +94,12 @@ export class Operator {
               resolve(null);
             }
           });
-      }
+      });
     });
   }
 
   async isRouteSupported(
-    route: Route,
+    route: string,
     sourceToken: string,
     destToken: string,
     amount: string,
@@ -99,11 +107,9 @@ export class Operator {
     destChain: Chain,
   ): Promise<boolean> {
     try {
-      if (!config.routes.includes(route)) {
-        return false;
-      }
-
       const r = this.getRoute(route);
+      console.log(route, r);
+      if (!r) return false;
       return await r.isRouteSupported(
         sourceToken,
         destToken,
@@ -117,8 +123,9 @@ export class Operator {
       return false;
     }
   }
+
   async isRouteAvailable(
-    route: Route,
+    route: string,
     sourceToken: string,
     destToken: string,
     amount: string,
@@ -126,11 +133,8 @@ export class Operator {
     destChain: Chain,
     options?: routes.AutomaticTokenBridgeRoute.Options,
   ): Promise<boolean> {
-    if (!config.routes.includes(route)) {
-      return false;
-    }
-
     const r = this.getRoute(route);
+    if (!r) return false;
     return await r.isRouteAvailable(
       sourceToken,
       destToken,
@@ -145,14 +149,14 @@ export class Operator {
     const supported = new Set<Chain>();
     for (const key in config.chains) {
       const chain = key as Chain;
-      for (const route of config.routes) {
+      this.forEach(async (_name, route) => {
         if (!supported.has(chain)) {
-          const isSupported = this.isSupportedChain(route as Route, chain);
+          const isSupported = route.isSupportedChain(chain);
           if (isSupported) {
             supported.add(chain);
           }
         }
-      }
+      });
     }
     return Array.from(supported);
   }
@@ -163,11 +167,9 @@ export class Operator {
     destChain?: Chain,
   ): Promise<TokenConfig[]> {
     const supported: { [key: string]: TokenConfig } = {};
-    for (const route of config.routes) {
-      const r = this.getRoute(route as Route);
-
+    await this.forEach(async (_name, route) => {
       try {
-        const sourceTokens = await r.supportedSourceTokens(
+        const sourceTokens = await route.supportedSourceTokens(
           config.tokensArr,
           destToken,
           sourceChain,
@@ -180,7 +182,7 @@ export class Operator {
       } catch (e) {
         console.error(e);
       }
-    }
+    });
     return Object.values(supported);
   }
 
@@ -190,11 +192,9 @@ export class Operator {
     destChain?: Chain,
   ): Promise<TokenConfig[]> {
     const supported: { [key: string]: TokenConfig } = {};
-    for (const route of config.routes) {
-      const r = this.getRoute(route as Route);
-
+    await this.forEach(async (_name, route) => {
       try {
-        const destTokens = await r.supportedDestTokens(
+        const destTokens = await route.supportedDestTokens(
           config.tokensArr,
           sourceToken,
           sourceChain,
@@ -207,17 +207,12 @@ export class Operator {
       } catch (e) {
         console.error(e);
       }
-    }
+    });
     return Object.values(supported);
   }
 
-  isSupportedChain(route: Route, chain: Chain): boolean {
-    const r = this.getRoute(route);
-    return r.isSupportedChain(chain);
-  }
-
   async computeReceiveAmount(
-    route: Route,
+    route: string,
     sendAmount: number,
     token: string,
     destToken: string,
@@ -237,7 +232,7 @@ export class Operator {
   }
 
   async computeReceiveAmountWithFees(
-    route: Route,
+    route: string,
     sendAmount: number,
     token: string,
     destToken: string,
@@ -257,7 +252,7 @@ export class Operator {
   }
 
   async validate(
-    route: Route,
+    route: string,
     token: TokenId | 'native',
     amount: string,
     sendingChain: Chain,
@@ -279,7 +274,7 @@ export class Operator {
   }
 
   async send(
-    route: Route,
+    route: string,
     token: TokenConfig,
     amount: string,
     sendingChain: Chain,
@@ -303,7 +298,7 @@ export class Operator {
   }
 
   async getPreview(
-    route: Route,
+    route: string,
     token: TokenConfig,
     destToken: TokenConfig,
     amount: number,
@@ -333,7 +328,7 @@ export class Operator {
   }
 
   async getForeignAsset(
-    route: Route,
+    route: string,
     tokenId: TokenId,
     chain: Chain,
     destToken?: TokenConfig,
@@ -343,7 +338,7 @@ export class Operator {
   }
 
   getTransferSourceInfo<T extends TransferInfoBaseParams>(
-    route: Route,
+    route: string,
     params: T,
   ): Promise<TransferDisplayData> {
     const r = this.getRoute(route);
@@ -351,7 +346,7 @@ export class Operator {
   }
 
   getTransferDestInfo<T extends TransferInfoBaseParams>(
-    route: Route,
+    route: string,
     params: T,
   ): Promise<TransferDestInfo> {
     const r = this.getRoute(route);
@@ -359,7 +354,7 @@ export class Operator {
   }
 
   tryFetchRedeemTx(
-    route: Route,
+    route: string,
     txData: TransferInfo,
   ): Promise<string | undefined> {
     const r = this.getRoute(route);

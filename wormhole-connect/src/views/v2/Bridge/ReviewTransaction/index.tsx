@@ -327,7 +327,7 @@ const ReviewTransaction = (props: Props) => {
         </IconButton>
       </div>
       <SingleRoute
-        config={RoutesConfig[route]}
+        route={RoutesConfig[route]}
         available={true}
         isSelected={false}
         destinationGasDrop={receiveNativeAmt}

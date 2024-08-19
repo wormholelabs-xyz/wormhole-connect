@@ -43,7 +43,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 import AlertBanner from 'components/AlertBanner';
 import { isGatewayChain } from 'utils/cosmos';
 import { useDebounce } from 'use-debounce';
-import { isPorticoRoute } from 'routes/porticoBridge/utils';
 import { interpretTransferError } from 'utils/errors';
 import { getTokenDetails } from 'telemetry';
 import { RouteContext } from 'contexts/RouteContext';
@@ -272,10 +271,13 @@ function Send(props: { valid: boolean }) {
     if (!route) return false;
     const r = RouteOperator.getRoute(route);
     return !(
-      r.AUTOMATIC_DEPOSIT ||
-      (toChain && isGatewayChain(toChain)) ||
-      toChain === 'Sei' ||
-      isPorticoRoute(r.TYPE)
+      (
+        r.AUTOMATIC_DEPOSIT ||
+        (toChain && isGatewayChain(toChain)) ||
+        toChain === 'Sei'
+      )
+      // TODO SDKV2
+      //isPorticoRoute(r.TYPE)
     );
   }, [route, toChain]);
 

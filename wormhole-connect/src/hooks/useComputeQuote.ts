@@ -3,8 +3,7 @@ import { useDispatch } from 'react-redux';
 
 import { setReceiveAmount, setReceiveAmountError } from 'store/transferInput';
 
-import type { Route } from 'config/types';
-import { getRoute } from 'routes/mappings';
+import RouteOperator from 'routes/operator';
 import { setReceiveNativeAmt, setRelayerFee, setEta } from 'store/relay';
 import { Chain, amount as sdkAmount } from '@wormhole-foundation/sdk';
 import { toDecimals } from 'utils/balance';
@@ -15,7 +14,7 @@ type Props = {
   sourceToken: string;
   destChain: Chain | undefined;
   destToken: string;
-  route: Route | undefined;
+  route?: string;
   amount: string;
   toNativeToken: number;
 };
@@ -64,7 +63,7 @@ const useComputeQuote = (props: Props): returnProps => {
           return;
         }
 
-        const r = getRoute(route);
+        const r = RouteOperator.getRoute(route);
         const quote = await r.computeQuote(
           parsedAmount,
           sourceToken,

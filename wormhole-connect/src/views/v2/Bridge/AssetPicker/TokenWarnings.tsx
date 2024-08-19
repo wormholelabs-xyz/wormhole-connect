@@ -16,7 +16,6 @@ import { joinClass } from 'utils/style';
 import { CircularProgress, Link, Typography } from '@mui/material';
 import AlertBannerV2 from 'components/v2/AlertBanner';
 import RouteOperator from 'routes/operator';
-import { Route } from 'config/types';
 import { isNttRoute } from 'routes';
 
 const useStyles = makeStyles()((theme: any) => ({
@@ -267,8 +266,9 @@ const TokenWarnings = () => {
     if (
       destChain === 'Solana' &&
       foreignAsset &&
-      route !== Route.TBTC &&
       !isNttRoute(route)
+      //TODO SDKV2
+      //route !== Route.TBTC &&
     ) {
       checkSolanaAssociatedTokenAccount();
     }
@@ -336,7 +336,7 @@ const TokenWarnings = () => {
   let content;
   if (!foreignAsset) {
     content = noForeignAssetWarning;
-  } else if (destChain === 'Solana' && route !== Route.Relay) {
+  } else if (destChain === 'Solana' && route !== 'AutomaticTokenBridge') {
     content = noAssociatedTokenAccount;
   } else if (usdcAndNoCCTP) {
     content = warningNoCCTPOption;

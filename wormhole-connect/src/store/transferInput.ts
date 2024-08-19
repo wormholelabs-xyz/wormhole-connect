@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Context } from 'sdklegacy';
 import config from 'config';
-import { Route, TokenConfig } from 'config/types';
+import { TokenConfig } from 'config/types';
 import { getTokenDecimals } from 'utils';
 import { toDecimals } from 'utils/balance';
 import {
@@ -117,7 +117,7 @@ export interface TransferInputState {
   destToken: string;
   amount: string;
   receiveAmount: DataWrapper<string>;
-  route: Route | undefined;
+  route?: string;
   balances: WalletBalances;
   foreignAsset: string;
   associatedTokenAddress: string;
@@ -263,6 +263,8 @@ const establishRoute = (state: TransferInputState) => {
     return;
   }
   const routeOrderOfPreference = [
+    /*
+     * TODO SDKV2
     Route.CosmosGateway,
     Route.CCTPRelay,
     Route.CCTPManual,
@@ -273,6 +275,7 @@ const establishRoute = (state: TransferInputState) => {
     Route.NttManual,
     Route.Relay,
     Route.Bridge,
+    */
   ];
   for (const r of routeOrderOfPreference) {
     const routeState = routeStates.find((rs) => rs.name === r);
@@ -306,7 +309,7 @@ export const transferInputSlice = createSlice({
     },
     setRoute: (
       state: TransferInputState,
-      { payload }: PayloadAction<Route>,
+      { payload }: PayloadAction<string>,
     ) => {
       state.route = payload;
     },
@@ -314,6 +317,7 @@ export const transferInputSlice = createSlice({
       state: TransferInputState,
       { payload }: PayloadAction<RouteState[]>,
     ) => {
+      console.log(state, payload);
       state.routeStates = payload;
       establishRoute(state);
     },
@@ -406,7 +410,7 @@ export const transferInputSlice = createSlice({
     },
     setTransferRoute: (
       state: TransferInputState,
-      { payload }: PayloadAction<Route | undefined>,
+      { payload }: PayloadAction<string | undefined>,
     ) => {
       if (!payload) {
         state.route = undefined;

@@ -2,14 +2,12 @@ import config from 'config';
 import RouteOperator from 'routes/operator';
 import { getWrappedToken } from 'utils';
 
-import type { Route } from 'config/types';
-
 import { Chain } from '@wormhole-foundation/sdk';
 
 type Props = {
   destChain: Chain | undefined;
   destToken: string;
-  route: Route | undefined;
+  route?: string;
   valid: boolean;
   isTransactionInProgress: boolean;
 };
@@ -33,7 +31,7 @@ export const useGasSlider = (
   const willReceiveGasToken =
     wrappedGasTokenConfig && destToken === wrappedGasTokenConfig.key;
   const showGasSlider =
-    route &&
+    !!route &&
     RouteOperator.getRoute(route).NATIVE_GAS_DROPOFF_SUPPORTED &&
     !willReceiveGasToken;
 

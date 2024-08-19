@@ -3,12 +3,8 @@ import MAINNET from './mainnet';
 import TESTNET from './testnet';
 import DEVNET from './devnet';
 import type { WormholeConnectConfig } from './types';
-import {
-  Network,
-  InternalConfig,
-  Route,
-  WrappedTokenAddressCache,
-} from './types';
+import { Network, InternalConfig, WrappedTokenAddressCache } from './types';
+import { DEFAULT_ROUTES } from './routes';
 import {
   mergeCustomTokensConfig,
   mergeNttConfig,
@@ -17,6 +13,7 @@ import {
 import { wrapEventHandler } from './events';
 
 import { SDKConverter } from './converter';
+import { SDKv2Route } from 'routes/sdkv2/route';
 
 import {
   wormhole as getWormholeV2,
@@ -72,6 +69,19 @@ export function buildConfig(
   }
 
   const sdkConverter = new SDKConverter(wh);
+
+  let routes = {};
+  let routePreference: string[] = [];
+  for (const rc of customConfig?.routes ?? DEFAULT_ROUTES) {
+    const name = rc.meta.name;
+    if (name === '') {
+      throw new Error(`Route has empty meta.name`);
+    } else if (name in routes) {
+      throw new Error(`Route has duplicate meta.name: ${name}`);
+    }
+    routePreference.push(name);
+    routes[name] = new SDKv2Route(rc);
+  }
 
   return {
     wh,
@@ -136,17 +146,8 @@ export function buildConfig(
     ),
 
     // TODO: routes that aren't supported yet are disabled
-    routes: (customConfig?.routes ?? Object.values(Route)).filter((r) =>
-      [
-        Route.Bridge,
-        Route.Relay,
-        Route.NttManual,
-        Route.NttRelay,
-        Route.CCTPManual,
-        Route.CCTPRelay,
-        Route.Mayan,
-      ].includes(r as Route),
-    ),
+    routes,
+    routePreference,
 
     // UI details
     cta: customConfig?.cta,

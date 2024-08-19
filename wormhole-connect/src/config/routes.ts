@@ -2,11 +2,36 @@ import WormholeIcon from '../icons/Routes/Wormhole';
 import XLabsIcon from '../icons/Routes/XLabs';
 // import HashflowIcon from '../icons/Routes/Hashflow';
 import CCTPIcon from '../icons/Routes/CCTP';
-import { Route } from './types';
+
+import { routes } from '@wormhole-foundation/sdk';
+import {
+  nttAutomaticRoute,
+  nttManualRoute,
+  NttRoute,
+} from '@wormhole-foundation/sdk-route-ntt';
+
+export const DEFAULT_ROUTES = [
+  routes.TokenBridgeRoute,
+  routes.AutomaticTokenBridgeRoute,
+  routes.CCTPRoute,
+  routes.AutomaticCCTPRoute,
+];
+
+// Convenience function for integrators when adding NTT routes to their config
+//
+// Example:
+//
+// routes: [
+//   ...DEFAULT_ROUTES,
+//   ...nttRoutes({ ... }),
+// ]
+export const nttRoutes = (nc: NttRoute.Config): routes.RouteConstructor[] => {
+  return [nttManualRoute(nc), nttAutomaticRoute(nc)];
+};
 
 export type RouteData = {
-  route: Route;
-  name: string;
+  name: string; // Should match meta.name in RouteConstructor
+  displayName: string; // Human-readable name
   providedBy: string;
   routePath?: string;
   link: string;
@@ -14,49 +39,41 @@ export type RouteData = {
   pendingMessage: string;
 };
 
-export const RoutesConfig: {
-  [route in Route]: RouteData;
-} = {
-  [Route.Bridge]: {
-    route: Route.Bridge,
-    name: 'Manual Bridge',
+// TODO SDKV2 REMOVE THIS, WE SHOULDNT HAVE THIS KIND OF INFORMATION IN CONNECT
+export const RoutesConfig: Record<string, RouteData> = {
+  ManualTokenBridge: {
+    name: 'ManualTokenBridge',
+    displayName: 'Manual Bridge',
     providedBy: 'Wormhole',
     link: 'https://wormhole.com/',
     icon: WormholeIcon,
     pendingMessage: 'Waiting for Wormhole network consensus . . .',
   },
-  [Route.Relay]: {
-    route: Route.Relay,
-    name: 'Automatic Bridge',
+  AutomaticTokenBridge: {
+    name: 'AutomaticTokenBridge',
+    displayName: 'Automatic Bridge',
     providedBy: 'xLabs',
     link: 'https://xlabs.xyz',
     icon: XLabsIcon,
     pendingMessage: 'Waiting for Wormhole network consensus . . .',
   },
-  // [Route.Hashflow]: {
-  //   route: Route.Hashflow,
-  //   name: 'Hashflow',
-  //   providedBy: 'Hashflow',
-  //   link: 'https://www.hashflow.com/',
-  //   icon: HashflowIcon,
-  //   pendingMessage: 'Waiting for Wormhole network consensus . . .',
-  // },
-  [Route.CCTPManual]: {
-    route: Route.CCTPManual,
-    name: 'Circle CCTP',
+  ManualCCTP: {
+    name: 'ManualCCTP',
+    displayName: 'Circle CCTP',
     providedBy: 'Circle',
     link: 'https://www.circle.com/en/cross-chain-transfer-protocol',
     icon: CCTPIcon,
     pendingMessage: 'Waiting for Circle attestation . . .',
   },
-  [Route.CCTPRelay]: {
-    route: Route.CCTPRelay,
-    name: 'Circle CCTP',
+  AutomaticCCTP: {
+    name: 'AutomaticCCTP',
+    displayName: 'Circle CCTP',
     providedBy: 'Circle',
     link: 'https://www.circle.com/en/cross-chain-transfer-protocol',
     icon: CCTPIcon,
     pendingMessage: 'Waiting for Circle attestation . . .',
   },
+  /*
   [Route.TBTC]: {
     route: Route.TBTC,
     name: 'tBTC',
@@ -91,17 +108,18 @@ export const RoutesConfig: {
     icon: WormholeIcon,
     pendingMessage: 'Waiting for Wormhole network consensus . . .',
   },
-  [Route.NttManual]: {
-    route: Route.NttManual,
-    name: 'Native Token Transfer',
+  */
+  ManualNtt: {
+    name: 'ManualNtt',
+    displayName: 'Native Token Transfer',
     providedBy: 'Wormhole',
     link: 'https://wormhole.com/',
     icon: WormholeIcon,
     pendingMessage: 'Waiting for Wormhole network consensus . . .',
   },
-  [Route.NttRelay]: {
-    route: Route.NttRelay,
-    name: 'Native Token Transfer',
+  AutomaticNtt: {
+    name: 'AutomaticNtt',
+    displayName: 'Native Token Transfer',
     providedBy: 'xLabs',
     link: 'https://xlabs.xyz',
     icon: XLabsIcon,

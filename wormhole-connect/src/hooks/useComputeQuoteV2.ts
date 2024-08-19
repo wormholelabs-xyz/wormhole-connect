@@ -3,18 +3,16 @@ import { useEffect, useState } from 'react';
 import { Chain, amount as sdkAmount } from '@wormhole-foundation/sdk';
 
 import config from 'config';
-import { getRoute } from 'routes/mappings';
+import RouteOperator from 'routes/operator';
 import { getTokenDecimals } from 'utils';
 import { toDecimals } from 'utils/balance';
-
-import type { Route } from 'config/types';
 
 type Props = {
   sourceChain: Chain | undefined;
   sourceToken: string;
   destChain: Chain | undefined;
   destToken: string;
-  route: Route | undefined;
+  route?: string;
   amount: string;
   toNativeToken: number;
 };
@@ -73,7 +71,7 @@ const useComputeQuoteV2 = (props: Props): returnProps => {
       try {
         setIsFetching(true);
 
-        const r = getRoute(route);
+        const r = RouteOperator.getRoute(route);
 
         const quote = await r.computeQuote(
           parsedAmount,

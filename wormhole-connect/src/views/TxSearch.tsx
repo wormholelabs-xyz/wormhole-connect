@@ -20,7 +20,6 @@ import AlertBanner from 'components/AlertBanner';
 import { setToChain } from 'store/transferInput';
 import FooterNavBar from 'components/FooterNavBar';
 import { useExternalSearch } from 'hooks/useExternalSearch';
-import { getRoute } from 'routes/mappings';
 import { RouteContext } from 'contexts/RouteContext';
 
 import { parseReceipt } from 'utils/sdkv2';
@@ -110,7 +109,7 @@ function TxSearch() {
     const { route } = resumeResult;
     let { receipt } = resumeResult;
     const wh = await getWormholeContextV2();
-    const sdkRoute = new (getRoute(route).rc)(wh);
+    const sdkRoute = new (RouteOperator.getRoute(route).rc)(wh);
     setError('');
 
     // Track until we have an attestation

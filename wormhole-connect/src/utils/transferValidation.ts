@@ -2,7 +2,7 @@ import { Dispatch, useEffect, useMemo } from 'react';
 import { AnyAction } from '@reduxjs/toolkit';
 
 import config from 'config';
-import { Route, TokenConfig } from 'config/types';
+import { TokenConfig } from 'config/types';
 import { SANCTIONED_WALLETS } from 'consts/wallet';
 import { RootState } from 'store';
 import {
@@ -149,27 +149,8 @@ export const validateToNativeAmt = (
   return '';
 };
 
-export const validateRoute = (
-  route: Route | undefined,
-  availableRoutes: string[] | undefined,
-): ValidationErr => {
-  if (!route || !availableRoutes || !availableRoutes.includes(route)) {
-    return 'No bridge or swap route available for selected tokens';
-  }
-  return '';
-};
-
-export const validateForeignAsset = (
-  destTokenAddr: string | undefined,
-): ValidationErr => {
-  if (!destTokenAddr) {
-    return 'No wrapped asset exists for this token';
-  }
-  return '';
-};
-
 export const validateRelayerFee = (
-  route: Route | undefined,
+  route: string,
   routeOptions: any,
 ): ValidationErr => {
   if (!route) return '';
@@ -177,7 +158,7 @@ export const validateRelayerFee = (
 };
 
 export const validateReceiveAmount = (
-  route: Route | undefined,
+  route: string,
   receiveAmount: DataWrapper<string>,
   routeOptions: any,
 ): ValidationErr => {
@@ -185,15 +166,17 @@ export const validateReceiveAmount = (
   return '';
 };
 
-export const getMaxAmt = (route: Route | undefined): number => {
+export const getMaxAmt = (route?: string): number => {
   if (!route) return Infinity;
   const r = RouteOperator.getRoute(route);
+  if (!r) return Infinity;
   return r.getMaxSendAmount();
 };
 
-export const getIsAutomatic = (route: Route | undefined): boolean => {
+export const getIsAutomatic = (route?: string): boolean => {
   if (!route) return false;
   const r = RouteOperator.getRoute(route);
+  if (!r) return false;
   return r.AUTOMATIC_DEPOSIT;
 };
 
@@ -232,7 +215,6 @@ export const validateAll = async (
     foreignAsset,
     route,
     supportedDestTokens,
-    routeStates,
   } = transferData;
   const { maxSwapAmt, toNativeToken } = relayData;
   const { sending, receiving } = walletData;
@@ -244,9 +226,6 @@ export const validateAll = async (
     token,
   );
   const maxSendAmount = getMaxAmt(route);
-  const availableRoutes = routeStates
-    ?.filter((rs) => rs.supported)
-    .map((val) => val.name);
   const isCctpTx = isCctp(token, destToken, fromChain, toChain);
   const baseValidations = {
     sendingWallet: await validateWallet(sending, fromChain),
@@ -261,15 +240,13 @@ export const validateAll = async (
       maxSendAmount,
       isCctpTx,
     ),
-    route: validateRoute(route, availableRoutes),
     toNativeToken: '',
-    foreignAsset: validateForeignAsset(foreignAsset),
     relayerFee: '',
     receiveAmount: '',
   };
 
   if (isAutomatic) {
-    if (route === Route.NttRelay) {
+    if (route === 'AutomaticNtt') {
       // Ntt does not support native gas drop-off
       return baseValidations;
     }

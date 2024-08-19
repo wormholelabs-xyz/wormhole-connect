@@ -8,7 +8,6 @@ import Typography from '@mui/material/Typography';
 import HistoryIcon from '@mui/icons-material/History';
 import SettingsIcon from '@mui/icons-material/Settings';
 
-import type { Route } from 'config/types';
 import type { RootState } from 'store';
 
 import RouteOperator from 'routes/operator';
@@ -111,7 +110,7 @@ const Bridge = () => {
     (state: RootState) => state.wallet,
   );
 
-  const [selectedRoute, setSelectedRoute] = useState<Route>();
+  const [selectedRoute, setSelectedRoute] = useState<string>();
   const [willReviewTransaction, setWillReviewTransaction] = useState(false);
 
   const { toNativeToken } = useSelector((state: RootState) => state.relay);

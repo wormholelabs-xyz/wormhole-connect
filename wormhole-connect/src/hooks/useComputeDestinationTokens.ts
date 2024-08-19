@@ -8,7 +8,7 @@ import {
   setAllSupportedDestTokens,
 } from 'store/transferInput';
 
-import type { Route, TokenConfig } from 'config/types';
+import type { TokenConfig } from 'config/types';
 
 import RouteOperator from 'routes/operator';
 
@@ -20,7 +20,7 @@ type Props = {
   sourceChain: Chain | undefined;
   sourceToken: string;
   destChain: Chain | undefined;
-  route: Route | undefined;
+  route?: string;
 };
 
 export const useComputeDestinationTokens = (props: Props): void => {

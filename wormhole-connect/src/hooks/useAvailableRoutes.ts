@@ -4,9 +4,7 @@ import { useDebounce } from 'use-debounce';
 
 import { RouteState, setRoutes } from 'store/transferInput';
 import RouteOperator from 'routes/operator';
-import config from 'config';
 
-import type { Route } from 'config/types';
 import type { RootState } from 'store';
 
 const useAvailableRoutes = (): void => {
@@ -29,16 +27,13 @@ const useAvailableRoutes = (): void => {
 
     const getAvailable = async () => {
       const routes: RouteState[] = [];
-      for (const value of config.routes) {
-        const r = value as Route;
-
+      await RouteOperator.forEach(async (name, route) => {
         let supported = false;
         let available = false;
         let availabilityError = '';
 
         try {
-          supported = await RouteOperator.isRouteSupported(
-            r,
+          supported = await route.isRouteSupported(
             token,
             destToken,
             debouncedAmount,
@@ -46,15 +41,14 @@ const useAvailableRoutes = (): void => {
             toChain,
           );
         } catch (e) {
-          console.error('Error when checking route is supported:', e, r);
+          console.error('Error when checking route is supported:', e, name);
         }
 
         // Check availability of a route only when it is supported
         // Primary goal here is to prevent any unnecessary RPC calls
         if (supported) {
           try {
-            available = await RouteOperator.isRouteAvailable(
-              r,
+            available = await route.isRouteAvailable(
               token,
               destToken,
               debouncedAmount,
@@ -62,20 +56,13 @@ const useAvailableRoutes = (): void => {
               toChain,
               { nativeGas: toNativeToken },
             );
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } catch (e: any) {
-            availabilityError = 'Route is unavailable.';
-            console.error('Error when checking route is available:', e, r);
+          } catch (e) {
+            console.error('Error when checking route is available:', e, name);
           }
         }
 
-        routes.push({
-          name: r,
-          supported,
-          available,
-          availabilityError,
-        });
-      }
+        routes.push({ name, supported, available });
+      });
 
       if (isActive) {
         dispatch(setRoutes(routes));
