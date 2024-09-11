@@ -179,7 +179,7 @@ const TxHistoryItem = (props: Props) => {
     return (
       <Stack direction="row" justifyContent="space-between">
         <Typography color={theme.palette.text.secondary} fontSize={14}>
-          Bridge fee
+          Network cost
         </Typography>
         <Typography fontSize={14}>{feeAmountPrice}</Typography>
       </Stack>
