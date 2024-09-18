@@ -80,6 +80,7 @@ function AmountInput(props: Props) {
             disabled={isTransactionInProgress || props.disabled}
             value={props.value}
             testId={props.side + '-section-amount-input'}
+            pattern="[0-9]+([\.|,][0-9]{1,2})?"
           />
           {price && <Price>{price}</Price>}
         </>
