@@ -24,8 +24,9 @@ import { amount as sdkAmount } from '@wormhole-foundation/sdk';
 import AlertBannerV2 from 'components/v2/AlertBanner';
 import useGetTokenBalances from 'hooks/useGetTokenBalances';
 import { setAmount } from 'store/transferInput';
-import type { TokenConfig } from 'config/types';
+import { Token } from 'config/tokens';
 import type { RootState } from 'store';
+import { useGetTokens } from 'hooks/useGetTokens';
 
 const INPUT_DEBOUNCE = 500;
 
@@ -111,7 +112,7 @@ const useStyles = makeStyles()((theme) => ({
 }));
 
 type Props = {
-  supportedSourceTokens: Array<TokenConfig>;
+  supportedSourceTokens: Array<Token>;
   error?: string;
   warning?: string;
 };
@@ -133,9 +134,11 @@ const AmountInput = (props: Props) => {
     amount ? sdkAmount.display(amount) : '',
   );
 
-  const { fromChain: sourceChain, token: sourceToken } = useSelector(
+  const { fromChain: sourceChain } = useSelector(
     (state: RootState) => state.transferInput,
   );
+
+  const { sourceToken } = useGetTokens();
 
   const { balances, isFetching } = useGetTokenBalances(
     sendingWallet?.address || '',
@@ -154,7 +157,7 @@ const AmountInput = (props: Props) => {
   }, [amount]);
 
   const tokenBalance = useMemo(
-    () => balances?.[sourceToken]?.balance || null,
+    () => (balances && sourceToken ? balances[sourceToken.key]?.balance : null),
     [balances, sourceToken],
   );
 

@@ -57,6 +57,8 @@ import TxFailedIcon from 'icons/TxFailed';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { PublicKey } from '@solana/web3.js';
 import TxReadyForClaim from 'icons/TxReadyForClaim';
+import { parseTokenKey } from 'config/tokens';
+import { useGetTokens } from 'hooks/useGetTokens';
 
 type StyleProps = {
   transitionDuration?: string | undefined;
@@ -149,6 +151,8 @@ const Redeem = () => {
 
   const routeContext = React.useContext(RouteContext);
 
+  const { sourceToken, destToken } = useGetTokens();
+
   useConnectToLastUsedWallet();
 
   const {
@@ -214,8 +218,8 @@ const Redeem = () => {
 
   const details = getTransferDetails(
     routeName!,
-    tokenKey,
-    receivedTokenKey,
+    sourceToken!,
+    destToken!,
     fromChain,
     toChain,
     amount,
@@ -637,24 +641,14 @@ const Redeem = () => {
       // These routes set the recipient address to the associated token address
       ['ManualTokenBridge', 'ManualCCTP'].includes(routeName)
     ) {
-      const receivedToken = config.sdkConverter.toTokenIdV2(
-        config.tokens[receivedTokenKey],
-        'Solana',
-      );
+      const { address: receiveTokenAddress } = parseTokenKey(receivedTokenKey);
 
-      try {
-        const ata = getAssociatedTokenAddressSync(
-          new PublicKey(receivedToken.address.toString()),
-          new PublicKey(receivingWallet.address),
-        );
-        if (!ata.equals(new PublicKey(recipient))) {
-          setClaimError('Not connected to the receiving wallet');
-          return false;
-        }
-      } catch (e: unknown) {
-        console.log(
-          `Error while checking associated token address for the recipient: ${e}`,
-        );
+      const ata = getAssociatedTokenAddressSync(
+        new PublicKey(receiveTokenAddress.toString()),
+        new PublicKey(receivingWallet.address),
+      );
+      if (!ata.equals(new PublicKey(recipient))) {
+        setClaimError('Not connected to the receiving wallet');
         return false;
       }
 
@@ -696,8 +690,8 @@ const Redeem = () => {
 
     const transferDetails = {
       route: routeName,
-      fromToken: getTokenDetails(tokenKey),
-      toToken: getTokenDetails(receivedTokenKey),
+      fromToken: getTokenDetails(config.tokens.mustGet(tokenKey)),
+      toToken: getTokenDetails(config.tokens.mustGet(receivedTokenKey)),
       fromChain: fromChain,
       toChain: toChain,
     };

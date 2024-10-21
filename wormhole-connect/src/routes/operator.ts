@@ -1,5 +1,5 @@
 import config from 'config';
-import { TokenConfig } from 'config/types';
+import { Token } from 'config/tokens';
 
 import {
   Chain,
@@ -40,9 +40,9 @@ export const DEFAULT_ROUTES = [
 
 export interface QuoteParams {
   sourceChain: Chain;
-  sourceToken: string;
+  sourceToken: Token;
   destChain: Chain;
-  destToken: string;
+  destToken: Token;
   amount: sdkAmount.Amount;
   nativeGas: number;
 }
@@ -154,20 +154,11 @@ export default class RouteOperator {
     return Array.from(supported);
   }
 
-  async allSupportedSourceTokens(
-    destToken: TokenConfig | undefined,
-    sourceChain?: Chain,
-    destChain?: Chain,
-  ): Promise<TokenConfig[]> {
-    const supported: { [key: string]: TokenConfig } = {};
+  async allSupportedSourceTokens(sourceChain?: Chain): Promise<Token[]> {
+    const supported: { [key: string]: Token } = {};
     await this.forEach(async (_name, route) => {
       try {
-        const sourceTokens = await route.supportedSourceTokens(
-          config.tokensArr,
-          destToken,
-          sourceChain,
-          destChain,
-        );
+        const sourceTokens = await route.supportedSourceTokens(sourceChain);
 
         for (const token of sourceTokens) {
           supported[token.key] = token;
@@ -180,15 +171,14 @@ export default class RouteOperator {
   }
 
   async allSupportedDestTokens(
-    sourceToken: TokenConfig | undefined,
+    sourceToken: Token | undefined,
     sourceChain?: Chain,
     destChain?: Chain,
-  ): Promise<TokenConfig[]> {
-    const supported: { [key: string]: TokenConfig } = {};
+  ): Promise<Token[]> {
+    const supported: { [key: string]: Token } = {};
     await this.forEach(async (_name, route) => {
       try {
         const destTokens = await route.supportedDestTokens(
-          config.tokensArr,
           sourceToken,
           sourceChain,
           destChain,

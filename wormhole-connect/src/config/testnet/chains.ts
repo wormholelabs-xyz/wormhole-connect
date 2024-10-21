@@ -13,6 +13,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 97,
     icon: Icon.BSC,
     maxBlockSearch: 2000,
+    sdkName: 'Bsc',
   },
   Avalanche: {
     ...chains.Avalanche!,
@@ -23,6 +24,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 43113,
     icon: Icon.AVAX,
     maxBlockSearch: 2000,
+    sdkName: 'Avalanche',
   },
   Fantom: {
     ...chains.Fantom!,
@@ -33,6 +35,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 4002,
     icon: Icon.FANTOM,
     maxBlockSearch: 2000,
+    sdkName: 'Fantom',
   },
   Celo: {
     ...chains.Celo!,
@@ -43,6 +46,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 44787,
     icon: Icon.CELO,
     maxBlockSearch: 2000,
+    sdkName: 'Celo',
   },
   Moonbeam: {
     ...chains.Moonbeam!,
@@ -53,6 +57,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 1287,
     icon: Icon.GLMR,
     maxBlockSearch: 2000,
+    sdkName: 'Moonbeam',
   },
   Solana: {
     ...chains.Solana!,
@@ -63,6 +68,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 0,
     icon: Icon.SOLANA,
     maxBlockSearch: 2000,
+    sdkName: 'Solana',
   },
   Sui: {
     ...chains.Sui!,
@@ -73,6 +79,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 0,
     icon: Icon.SUI,
     maxBlockSearch: 0,
+    sdkName: 'Sui',
   },
   Aptos: {
     ...chains.Aptos!,
@@ -83,6 +90,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 0,
     icon: Icon.APT,
     maxBlockSearch: 0,
+    sdkName: 'Aptos',
   },
   Klaytn: {
     ...chains.Klaytn!,
@@ -93,6 +101,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 1001,
     icon: Icon.KLAY,
     maxBlockSearch: 2000,
+    sdkName: 'Klaytn',
   },
   // TODO: SDKV2 - re-enable cosmos chains once cosmos gateway route is implemented
   //Sei: {
@@ -164,6 +173,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 11155111,
     icon: Icon.ETH,
     maxBlockSearch: 2000,
+    sdkName: 'Sepolia',
   },
   ArbitrumSepolia: {
     ...chains.ArbitrumSepolia!,
@@ -174,6 +184,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 421614,
     icon: Icon.ARBITRUM,
     maxBlockSearch: 2000,
+    sdkName: 'ArbitrumSepolia',
   },
   BaseSepolia: {
     ...chains.BaseSepolia!,
@@ -184,6 +195,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 84532,
     icon: Icon.BASE,
     maxBlockSearch: 2000,
+    sdkName: 'BaseSepolia',
   },
   OptimismSepolia: {
     ...chains.OptimismSepolia!,
@@ -194,6 +206,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 11155420,
     icon: Icon.OPTIMISM,
     maxBlockSearch: 2000,
+    sdkName: 'OptimismSepolia',
   },
   //Injective: {
   //  ...chains.Injective!,
@@ -214,6 +227,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 534351,
     icon: Icon.SCROLL,
     maxBlockSearch: 2000,
+    sdkName: 'Scroll',
   },
   Blast: {
     ...chains.Blast!,
@@ -224,6 +238,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 168587773,
     icon: Icon.BLAST,
     maxBlockSearch: 2000,
+    sdkName: 'Blast',
   },
   Xlayer: {
     ...chains.Xlayer!,
@@ -234,6 +249,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 195,
     icon: Icon.XLAYER,
     maxBlockSearch: 2000,
+    sdkName: 'Xlayer',
   },
   Mantle: {
     ...chains.Mantle!,
@@ -244,5 +260,6 @@ export const TESTNET_CHAINS: ChainsConfig = {
     chainId: 5003,
     icon: Icon.MANTLE,
     maxBlockSearch: 2000,
+    sdkName: 'Mantle',
   },
 };

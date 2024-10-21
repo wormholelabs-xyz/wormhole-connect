@@ -14,12 +14,13 @@ import { QuoteParams, QuoteResult } from 'routes/operator';
 import { calculateUSDPriceRaw } from 'utils';
 
 import config from 'config';
+import { Token } from 'config/tokens';
 
 type Params = {
   sourceChain?: Chain;
-  sourceToken: string;
+  sourceToken: Token | undefined;
   destChain?: Chain;
-  destToken: string;
+  destToken: Token | undefined;
   amount?: sdkAmount.Amount;
   nativeGas: number;
 };
@@ -45,8 +46,6 @@ const useRoutesQuotesBulk = (routes: string[], params: Params): HookReturn => {
 
   // TODO temporary
   // Calculate USD amount for temporary $10,000 Mayan limit
-  const sourceTokenConfig = config.tokens[params.sourceToken];
-  const destTokenConfig = config.tokens[params.destToken];
   const { usdPrices } = useSelector((state: RootState) => state.tokenPrices);
   const { isTransactionInProgress } = useSelector(
     (state: RootState) => state.transferInput,
@@ -54,7 +53,7 @@ const useRoutesQuotesBulk = (routes: string[], params: Params): HookReturn => {
   const usdValue = calculateUSDPriceRaw(
     params.amount,
     usdPrices.data,
-    sourceTokenConfig,
+    params.sourceToken,
   );
 
   useEffect(() => {
@@ -141,7 +140,7 @@ const useRoutesQuotesBulk = (routes: string[], params: Params): HookReturn => {
       const usdValueOut = calculateUSDPriceRaw(
         quote.destinationToken.amount,
         usdPrices.data,
-        destTokenConfig,
+        params.destToken,
       );
 
       if (usdValue && usdValueOut) {
@@ -184,12 +183,12 @@ const useRoutesQuotesBulk = (routes: string[], params: Params): HookReturn => {
           const approxInputUsdValue = calculateUSDPriceRaw(
             params.amount,
             usdPrices.data,
-            sourceTokenConfig,
+            params.sourceToken,
           );
           const approxOutputUsdValue = calculateUSDPriceRaw(
             mayanQuote.destinationToken.amount,
             usdPrices.data,
-            config.tokens[params.destToken],
+            params.destToken,
           );
 
           if (approxInputUsdValue && approxOutputUsdValue) {

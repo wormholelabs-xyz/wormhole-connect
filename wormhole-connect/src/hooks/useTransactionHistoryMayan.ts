@@ -19,7 +19,6 @@ interface MayanTransaction {
   toTokenPrice: number;
   toTokenAddress: string;
   toTokenChain: ChainId;
-  toTokenSymbol: string;
   status: string;
   clientStatus: string;
   initiatedAt: string;
@@ -60,7 +59,6 @@ const useTransactionHistoryMayan = (
       initiatedAt,
       toAmount,
       toTokenAddress,
-      toTokenSymbol,
       sourceTxHash,
       trader,
       destAddress,
@@ -75,20 +73,15 @@ const useTransactionHistoryMayan = (
       return;
     }
 
-    const fromTokenConfig = config.tokensArr.find(
-      (t) =>
-        t.symbol === fromTokenSymbol &&
-        (t.nativeChain === fromChain || t.tokenId?.chain === fromChain),
-    );
+    const fromTokenConfig = config.tokens
+      .getAll(fromChain)
+      .find((t) => t.symbol === fromTokenSymbol);
 
-    const toTokenConfig = config.tokensArr.find(
-      (t) =>
-        t.symbol === toTokenSymbol &&
-        (t.nativeChain === toChain || t.tokenId?.chain === toChain),
-    );
+    const toTokenConfig = config.tokens.get(toChain, toTokenAddress);
 
     // Skip this transaction if we can't find source or destination token configs
     if (!fromTokenConfig || !toTokenConfig) {
+      console.error('Cant find tokenz');
       return;
     }
 

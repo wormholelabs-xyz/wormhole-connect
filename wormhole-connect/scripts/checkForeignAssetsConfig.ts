@@ -38,7 +38,7 @@ import {
 } from '../src/config/testnet/tokens';
 import {
   ChainsConfig,
-  TokensConfig,
+  TokenConfig,
   TokenAddressesByChain,
 } from '../src/config/types';
 
@@ -57,7 +57,7 @@ const WORMCHAIN_ERROR_MESSAGES = [
 // slow and steady, or something like that
 const checkEnvConfig = async (
   env: Network,
-  tokensConfig: TokensConfig,
+  tokensConfig: TokenConfig[],
   wrappedTokens: TokenAddressesByChain,
   chainsConfig: ChainsConfig,
 ) => {
@@ -70,7 +70,7 @@ const checkEnvConfig = async (
     let universalAddress: UniversalAddress | null = null;
     if (tokenConfig.tokenId) {
       universalAddress = await nativeTb.getTokenUniversalAddress(
-        toNative(nativeChain.chain, tokenConfig.tokenId.address),
+        toNative(nativeChain.chain, tokenConfig.tokenId.address.toString()),
       );
     }
     await Promise.all(

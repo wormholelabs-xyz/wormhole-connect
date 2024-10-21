@@ -7,7 +7,7 @@ import { makeStyles } from 'tss-react/mui';
 
 import config from 'config';
 import { RootState } from 'store';
-import { setAmount, setDestToken, swapInputs } from 'store/transferInput';
+import { clearDestToken, setAmount, swapInputs } from 'store/transferInput';
 import { swapWallets } from 'store/wallet';
 
 const useStyles = makeStyles()(() => ({
@@ -48,14 +48,18 @@ function SwapInputs() {
 
     if (destToken) {
       config.routes
-        .allSupportedDestTokens(config.tokens[destToken], toChain, fromChain)
-        .then((tokenConfigs) => {
-          const isTokenSupportedAsDest = tokenConfigs.find(
-            (tc) => tc.key === sourceToken,
+        .allSupportedDestTokens(
+          config.tokens.get(destToken),
+          toChain,
+          fromChain,
+        )
+        .then((tokens) => {
+          const isTokenSupportedAsDest = tokens.find(
+            (tc) => tc.tuple === sourceToken,
           );
 
           if (!isTokenSupportedAsDest) {
-            dispatch(setDestToken(''));
+            dispatch(clearDestToken());
           }
         });
     }

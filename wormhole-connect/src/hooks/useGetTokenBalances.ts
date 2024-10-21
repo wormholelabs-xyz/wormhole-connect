@@ -1,19 +1,18 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'store';
-import { TokenId } from 'sdklegacy';
 import { useEffect, useState } from 'react';
 import { accessBalance, Balances, updateBalances } from 'store/transferInput';
 import config, { getWormholeContextV2 } from 'config';
-import { TokenConfig } from 'config/types';
+import { Token } from 'config/tokens';
 import { chainToPlatform } from '@wormhole-foundation/sdk-base';
-import { getTokenBridgeWrappedTokenAddress } from 'utils/sdkv2';
+import /*getTokenBridgeWrappedTokenAddress*/ 'utils/sdkv2';
 import { Chain, TokenAddress, amount } from '@wormhole-foundation/sdk';
 import { getTokenDecimals } from 'utils';
 
 const useGetTokenBalances = (
   walletAddress: string,
   chain: Chain | undefined,
-  tokens: TokenConfig[],
+  tokens: Token[],
 ): { isFetching: boolean; balances: Balances } => {
   const [isFetching, setIsFetching] = useState(false);
   const [balances, setBalances] = useState<Balances>({});
@@ -44,8 +43,7 @@ const useGetTokenBalances = (
 
     const getBalances = async () => {
       const updatedBalances: Balances = {};
-      type TokenConfigWithId = TokenConfig & { tokenId: TokenId };
-      const needsUpdate: TokenConfigWithId[] = [];
+      const needsUpdate: Token[] = [];
       const now = Date.now();
       const fiveMinutesAgo = now - 5 * 60 * 1000;
       let updateCache = false;
@@ -55,13 +53,13 @@ const useGetTokenBalances = (
           cachedBalances,
           walletAddress,
           chain,
-          token.key,
+          token,
         );
 
         if (cachedBalance && cachedBalance.lastUpdated > fiveMinutesAgo) {
           updatedBalances[token.key] = cachedBalance;
         } else {
-          needsUpdate.push(token as TokenConfigWithId);
+          needsUpdate.push(token);
         }
       }
 
@@ -70,45 +68,16 @@ const useGetTokenBalances = (
           const wh = await getWormholeContextV2();
           const platform = wh.getPlatform(chainToPlatform(chain));
           const rpc = platform.getRpc(chain);
-          const tokenIdMapping: Record<string, TokenConfig> = {};
-          const tokenAddresses: string[] = [];
-          for (const tokenConfig of needsUpdate) {
-            const decimals = getTokenDecimals(chain, tokenConfig);
+          const tokenAddresses: TokenAddress<Chain>[] = [];
+          for (const token of needsUpdate) {
+            const decimals = getTokenDecimals(chain, token);
 
-            updatedBalances[tokenConfig.key] = {
+            updatedBalances[token.key] = {
               balance: amount.fromBaseUnits(0n, decimals),
               lastUpdated: now,
             };
 
-            try {
-              let address: string | null = null;
-
-              if (
-                tokenConfig.nativeChain === chain &&
-                tokenConfig.tokenId === undefined
-              ) {
-                tokenAddresses.push('native');
-                tokenIdMapping['native'] = tokenConfig;
-              } else {
-                const foreignAddress = await getTokenBridgeWrappedTokenAddress(
-                  tokenConfig,
-                  chain,
-                );
-
-                if (foreignAddress) {
-                  address = foreignAddress.toString();
-                } else {
-                  console.warn(
-                    `No foreign address for ${tokenConfig.key} on chain ${chain}`,
-                  );
-                  continue;
-                }
-                tokenIdMapping[address] = tokenConfig;
-                tokenAddresses.push(address);
-              }
-            } catch (e) {
-              console.error(e);
-            }
+            tokenAddresses.push(token.address);
           }
 
           if (tokenAddresses.length === 0) {
@@ -125,15 +94,18 @@ const useGetTokenBalances = (
             );
 
           for (const tokenAddress in result) {
-            const tokenConfig = tokenIdMapping[tokenAddress];
-            const decimals = getTokenDecimals(chain, tokenConfig);
-            const bus = result[tokenAddress];
-            const balance = amount.fromBaseUnits(bus ?? 0n, decimals);
+            const token = config.tokens.get(chain, tokenAddress);
 
-            updatedBalances[tokenConfig.key] = {
-              balance,
-              lastUpdated: now,
-            };
+            if (token) {
+              const decimals = getTokenDecimals(chain, token);
+              const bus = result[tokenAddress];
+              const balance = amount.fromBaseUnits(bus ?? 0n, decimals);
+
+              updatedBalances[token.key] = {
+                balance,
+                lastUpdated: now,
+              };
+            }
           }
 
           updateCache = true;

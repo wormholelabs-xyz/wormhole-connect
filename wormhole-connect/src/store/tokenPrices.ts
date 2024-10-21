@@ -24,6 +24,7 @@ export const tokenPricesSlice = createSlice({
       state: TokenPricesState,
       { payload }: PayloadAction<TokenPrices>,
     ) => {
+      console.log(payload);
       state.usdPrices = receiveDataWrapper(payload);
     },
     setFetchingPrices: (state: TokenPricesState) => {

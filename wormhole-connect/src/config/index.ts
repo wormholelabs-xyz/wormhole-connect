@@ -7,16 +7,10 @@ import MAINNET from './mainnet';
 import TESTNET from './testnet';
 import DEVNET from './devnet';
 import type { WormholeConnectConfig } from './types';
-import { InternalConfig, WrappedTokenAddressCache } from './types';
-import {
-  mergeCustomTokensConfig,
-  mergeCustomWrappedTokens,
-  validateDefaults,
-} from './utils';
+import { InternalConfig /*WrappedTokenAddressCache*/ } from './types';
+import { /*mergeCustomWrappedTokens,*/ validateDefaults } from './utils';
 import { wrapEventHandler } from './events';
 import { capitalize } from './utils';
-
-import { SDKConverter } from './converter';
 
 import {
   wormhole as getWormholeV2,
@@ -40,6 +34,7 @@ import { getTokenDecimals, getWrappedToken } from 'utils';
 import { CHAIN_ORDER } from './constants';
 import { getTokenBridgeWrappedTokenAddressSync } from 'utils/sdkv2';
 import { createUiConfig } from './ui';
+import { buildTokenCache } from './tokens';
 
 export function buildConfig(
   customConfig?: WormholeConnectConfig,
@@ -57,15 +52,17 @@ export function buildConfig(
 
   const networkData = { MAINNET, DEVNET, TESTNET }[network.toUpperCase()]!;
 
-  const tokens = mergeCustomTokensConfig(
+  const tokens = buildTokenCache(
     networkData.tokens,
-    customConfig?.tokensConfig,
+    customConfig?.tokensConfig ? Object.values(customConfig?.tokensConfig) : [],
   );
 
+  /*
   const wrappedTokens = mergeCustomWrappedTokens(
     networkData.wrappedTokens,
     customConfig?.wrappedTokens,
   );
+  */
 
   const sdkConfig = LegacyWormholeContext.getConfig(network);
 
@@ -82,12 +79,9 @@ export function buildConfig(
     validateDefaults(customConfig.ui.defaultInputs, networkData.chains, tokens);
   }
 
-  const sdkConverter = new SDKConverter(whLegacy);
-
   return {
     whLegacy,
     sdkConfig,
-    sdkConverter,
 
     network,
     isMainnet: network === 'Mainnet',
@@ -144,17 +138,14 @@ export function buildConfig(
         return 0;
       }),
     tokens,
-    tokensArr: Object.values(tokens).filter((token) => {
-      return customConfig?.tokens
-        ? customConfig.tokens!.includes(token.key)
-        : true;
-    }),
 
+    /*
     // For token bridge =^_^=
     wrappedTokenAddressCache: new WrappedTokenAddressCache(
       tokens,
       wrappedTokens,
     ),
+    */
 
     routes: new RouteOperator(customConfig?.routes),
 
@@ -199,19 +190,16 @@ export async function newWormholeContextV2(): Promise<WormholeV2<Network>> {
     const rpc = config.rpcs[chain];
     const tokenMap: ChainTokensV2 = {};
 
-    for (const token of config.tokensArr) {
+    for (const token of config.tokens.getAll()) {
       const tokenV2: Partial<TokenV2> = {
         key: token.key,
         chain: chain,
         symbol: token.symbol,
+        address: token.address.toString(),
+        decimals: token.decimals,
       };
 
-      if (token.nativeChain === chain) {
-        const address = config.sdkConverter.getNativeTokenAddressV2(token);
-        if (!address) throw new Error('Token must have address');
-        tokenV2.address = address;
-        tokenV2.decimals = token.decimals;
-      } else {
+      if (token.nativeChain !== chain) {
         tokenV2.original = token.nativeChain;
         const fa = getTokenBridgeWrappedTokenAddressSync(token, chain);
         if (fa) {
@@ -246,6 +234,8 @@ export function setConfig(customConfig?: WormholeConnectConfig) {
     /* @ts-ignore */
     config[key] = newConfig[key];
   }
+  /* @ts-ignore */
+  window.config = config;
 }
 
 // TODO: add config validation step to buildConfig

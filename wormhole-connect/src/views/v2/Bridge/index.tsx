@@ -45,6 +45,8 @@ import type { Chain } from '@wormhole-foundation/sdk';
 import { amount as sdkAmount } from '@wormhole-foundation/sdk';
 import { useAmountValidation } from 'hooks/useAmountValidation';
 import useGetTokenBalances from 'hooks/useGetTokenBalances';
+import { useGetTokens } from 'hooks/useGetTokens';
+import { Token } from 'config/tokens';
 
 const useStyles = makeStyles()((theme) => ({
   assetPickerContainer: {
@@ -124,8 +126,6 @@ const Bridge = () => {
   const {
     fromChain: sourceChain,
     toChain: destChain,
-    token: sourceToken,
-    destToken,
     route,
     preferredRouteName,
     supportedDestTokens: supportedDestTokensBase,
@@ -133,6 +133,8 @@ const Bridge = () => {
     amount,
     validations,
   } = useSelector((state: RootState) => state.transferInput);
+
+  const { sourceToken, destToken } = useGetTokens();
 
   const {
     allSupportedRoutes,
@@ -202,11 +204,8 @@ const Bridge = () => {
   // Call to initiate transfer inputs validations
   useValidate();
 
-  // Fetch token prices
-  useFetchTokenPrices();
-
   const sourceTokenArray = useMemo(() => {
-    return sourceToken ? [config.tokens[sourceToken]] : [];
+    return sourceToken ? [sourceToken] : [];
   }, [sourceToken]);
 
   const { balances, isFetching: isFetchingBalances } = useGetTokenBalances(
@@ -225,13 +224,21 @@ const Bridge = () => {
 
   // Validate amount
   const amountValidation = useAmountValidation({
-    balance: balances[sourceToken]?.balance,
+    balance: sourceToken ? balances[sourceToken.key]?.balance : null,
     routes: allSupportedRoutes,
     quotesMap,
-    tokenSymbol: config.tokens[sourceToken]?.symbol ?? '',
+    tokenSymbol: sourceToken?.symbol ?? '',
     isLoading: isFetchingBalances || isFetchingQuotes,
     disabled: disableValidation,
   });
+
+  // Fetch token prices
+  if (sourceToken) {
+    // TODO token refactor
+    useFetchTokenPrices([sourceToken.tokenId]);
+  } else {
+    useFetchTokenPrices([]);
+  }
 
   // Get input validation result
   const isValid = useMemo(() => isTransferValid(validations), [validations]);
@@ -241,6 +248,10 @@ const Bridge = () => {
     () => config.routes.allSupportedChains(),
     [config.chainsArr],
   );
+
+  const sourceTokens = useMemo(() => {
+    return config.tokens.getList(supportedSourceTokens);
+  }, [supportedSourceTokens]);
 
   // Supported chains for the source network
   const supportedSourceChains = useMemo(() => {
@@ -265,15 +276,18 @@ const Bridge = () => {
 
   // Supported tokens for destination chain
   const supportedDestTokens = useMemo(() => {
+    return config.tokens.getAll(destChain);
+
+    /*
+    let tokens: TokenTuple[] = [];
     if (sourceChain && sourceToken) {
-      return supportedDestTokensBase;
-    } else {
-      return config.tokensArr.filter(
-        (tokenConfig) =>
-          tokenConfig.nativeChain === destChain ||
-          tokenConfig.tokenId?.chain === destChain,
-      );
+      tokens = supportedDestTokensBase;
+    } else if (destChain) {
+      tokens = config.tokens.getAll(destChain).map((t) => t.key);
     }
+
+    return config.tokens.getList(tokens);
+    */
   }, [destChain, sourceChain, sourceToken, supportedDestTokensBase]);
 
   // Connect bridge header, which renders any custom overrides for the header
@@ -312,13 +326,13 @@ const Bridge = () => {
           chain={sourceChain}
           chainList={supportedSourceChains}
           token={sourceToken}
-          tokenList={supportedSourceTokens}
+          tokenList={sourceTokens}
           isFetching={isFetchingSupportedSourceTokens}
           setChain={(value: Chain) => {
             selectFromChain(dispatch, value, sendingWallet);
           }}
-          setToken={(value: string) => {
-            dispatch(setToken(value));
+          setToken={(value: Token) => {
+            dispatch(setToken(value.tuple));
           }}
           wallet={sendingWallet}
           isSource={true}
@@ -353,8 +367,8 @@ const Bridge = () => {
           setChain={(value: Chain) => {
             selectToChain(dispatch, value, receivingWallet);
           }}
-          setToken={(value: string) => {
-            dispatch(setDestToken(value));
+          setToken={(value: Token) => {
+            dispatch(setDestToken(value.tuple));
           }}
           wallet={receivingWallet}
           isSource={false}
@@ -487,7 +501,7 @@ const Bridge = () => {
       {sourceAssetPicker}
       {destAssetPicker}
       <AmountInput
-        supportedSourceTokens={supportedSourceTokens}
+        supportedSourceTokens={config.tokens.getList(supportedSourceTokens)}
         error={amountValidation.error}
         warning={amountValidation.warning}
       />

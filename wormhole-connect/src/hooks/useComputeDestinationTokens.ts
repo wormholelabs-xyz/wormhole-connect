@@ -4,13 +4,13 @@ import { useDispatch } from 'react-redux';
 import config from 'config';
 import { setDestToken, setSupportedDestTokens } from 'store/transferInput';
 
-import type { TokenConfig } from 'config/types';
+import { Token } from 'config/tokens';
 
 import { Chain } from '@wormhole-foundation/sdk';
 
 type Props = {
   sourceChain: Chain | undefined;
-  sourceToken: string;
+  sourceToken: Token | undefined;
   destChain: Chain | undefined;
   route?: string;
 };
@@ -34,14 +34,14 @@ const useComputeDestinationTokens = (props: Props): ReturnProps => {
     let active = true;
 
     const computeDestTokens = async () => {
-      let supported: Array<TokenConfig> = [];
+      let supported: Token[] = [];
 
       // Start fetching and setting all supported tokens
       setIsFetching(true);
 
       try {
         supported = await config.routes.allSupportedDestTokens(
-          config.tokens[sourceToken],
+          sourceToken,
           sourceChain,
           destChain,
         );
@@ -49,17 +49,19 @@ const useComputeDestinationTokens = (props: Props): ReturnProps => {
         console.error(e);
       }
 
-      dispatch(setSupportedDestTokens(supported));
+      dispatch(setSupportedDestTokens(supported.map((t) => t.tuple)));
 
       // Done fetching and setting all supported tokens
       setIsFetching(false);
 
       if (destChain && supported.length === 1) {
         if (active) {
-          dispatch(setDestToken(supported[0].key));
+          dispatch(setDestToken(supported[0].tuple));
         }
       }
 
+      /*
+        * TODO token refactor
       // If all the supported tokens are the same token
       // select the native version for applicable tokens
       const symbols = supported.map((t) => t.symbol);
@@ -78,6 +80,7 @@ const useComputeDestinationTokens = (props: Props): ReturnProps => {
           dispatch(setDestToken(key));
         }
       }
+      */
     };
 
     computeDestTokens();

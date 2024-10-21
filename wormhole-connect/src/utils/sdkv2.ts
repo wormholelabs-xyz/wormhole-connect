@@ -15,6 +15,7 @@ import {
   amount,
   routes,
   CircleTransfer,
+  circle,
 } from '@wormhole-foundation/sdk';
 import config from 'config';
 import { NttRoute } from '@wormhole-foundation/sdk-route-ntt';
@@ -23,6 +24,7 @@ import { PublicKey } from '@solana/web3.js';
 import * as splToken from '@solana/spl-token';
 import { getTokenDecimals, getWrappedToken } from 'utils';
 import { WORMSCAN } from 'config/constants';
+import { ensureTokenIdV2 } from 'config/tokens';
 
 // Used to represent an initiated transfer. Primarily for the Redeem view.
 export interface TransferInfo {
@@ -66,10 +68,12 @@ export async function getTokenBridgeWrappedTokenAddress<C extends Chain>(
   chain: C,
 ): Promise<TokenAddress<C> | null> {
   // Try cache first
+  /*
   const cached = config.wrappedTokenAddressCache.get(token.key, chain);
   if (cached) {
     return cached;
   }
+  */
 
   // Fetch live and cache
   const wh = await getWormholeContextV2();
@@ -80,14 +84,16 @@ export async function getTokenBridgeWrappedTokenAddress<C extends Chain>(
     `Resolving foreign address for token ${token.key} on chain ${chain}`,
   );
 
-  const tokenId = config.sdkConverter.toTokenIdV2(token);
+  const tokenId = ensureTokenIdV2(token.tokenId);
 
   try {
     const wrapped = await tb.getWrappedAsset(tokenId);
 
+    /*
     if (wrapped) {
       config.wrappedTokenAddressCache.set(token.key, chain, wrapped);
     }
+    */
 
     return wrapped;
   } catch (_e) {
@@ -101,7 +107,8 @@ export function getTokenBridgeWrappedTokenAddressSync<C extends Chain>(
   token: TokenConfig,
   chain: C,
 ): TokenAddress<C> | null {
-  return config.wrappedTokenAddressCache.get(token.key, chain);
+  return null;
+  //return config.wrappedTokenAddressCache.get(token.key, chain);
 }
 
 export async function getDecimals(
@@ -220,20 +227,17 @@ const parseTokenBridgeReceipt = async (
       await tb.getTokenNativeAddress(payload.token.chain, payload.token.address)
     ).toString();
 
-    const tokenIdV2 = Wormhole.tokenId(payload.token.chain, tokenAddress);
-    const tokenV1 = config.sdkConverter.findTokenConfigV1(
-      tokenIdV2,
-      config.tokensArr,
-    );
+    const tokenId = Wormhole.tokenId(payload.token.chain, tokenAddress);
+    const token = config.tokens.get(tokenId);
 
-    if (!tokenV1) {
+    if (!token) {
       // This is a token Connect is not aware of
       throw new Error('Unknown token');
     }
 
     const fromChain = receipt.from;
 
-    const decimals = getTokenDecimals(fromChain, getWrappedToken(tokenV1));
+    const decimals = getTokenDecimals(fromChain, getWrappedToken(token));
 
     txData.tokenDecimals = decimals;
 
@@ -243,8 +247,8 @@ const parseTokenBridgeReceipt = async (
       Math.min(8, decimals),
     );
     txData.tokenAddress = tokenAddress;
-    txData.tokenKey = tokenV1.key;
-    txData.receivedTokenKey = tokenV1.key;
+    txData.tokenKey = token.key;
+    txData.receivedTokenKey = token.key;
     txData.receiveAmount = txData.amount;
     if (payload.payload?.toNativeTokenAmount) {
       txData.receiveNativeAmount = amount.fromBaseUnits(
@@ -257,7 +261,7 @@ const parseTokenBridgeReceipt = async (
         fee: Number(
           amount.fmt(payload.payload.targetRelayerFee, Math.min(8, decimals)),
         ),
-        tokenKey: tokenV1.key,
+        tokenKey: token.key,
       };
     }
   }
@@ -312,10 +316,8 @@ const parseCCTPReceipt = async (
     receipt.from,
     payload.burnToken.toNative(receipt.from).toString(),
   );
-  const usdcLegacy = config.sdkConverter.findTokenConfigV1(
-    sourceTokenId,
-    config.tokensArr,
-  );
+  const usdcLegacy = config.tokens.get(sourceTokenId);
+
   if (!usdcLegacy) {
     throw new Error(`Couldn't find USDC for source chain`);
   }
@@ -350,14 +352,24 @@ const parseCCTPReceipt = async (
 
   // The attestation doesn't have the destination token address, but we can deduce which it is
   // just based off the destination chain
-  const destinationUsdcLegacy = config.tokensArr.find((token) => {
-    return token.symbol === 'USDC' && token.nativeChain === txData.toChain;
-  });
-  if (!destinationUsdcLegacy) {
-    throw new Error(`Couldn't find USDC for destination chain`);
-  }
+  if (txData.toChain) {
+    const usdcContract = circle.usdcContract.get(
+      config.network,
+      txData.toChain,
+    );
+    if (!usdcContract) {
+      throw new Error(`Couldn't find USDC for destination chain`);
+    }
+    const destinationUsdcLegacy = config.tokens.get(
+      txData.toChain,
+      usdcContract,
+    );
+    if (!destinationUsdcLegacy) {
+      throw new Error(`Couldn't find USDC for destination chain`);
+    }
 
-  txData.receivedTokenKey = destinationUsdcLegacy.key;
+    txData.receivedTokenKey = destinationUsdcLegacy.key;
+  }
 
   return txData as TransferInfo;
 };
@@ -380,11 +392,8 @@ const parseNttReceipt = (
     receipt.from,
     receipt.params.normalizedParams.sourceContracts.token,
   );
-  const srcTokenV1 = config.sdkConverter.findTokenConfigV1(
-    srcTokenIdV2,
-    config.tokensArr,
-  );
-  if (!srcTokenV1) {
+  const srcToken = config.tokens.get(srcTokenIdV2);
+  if (!srcToken) {
     // This is a token Connect is not aware of
     throw new Error('Unknown src token');
   }
@@ -393,11 +402,8 @@ const parseNttReceipt = (
     receipt.to,
     receipt.params.normalizedParams.destinationContracts.token,
   );
-  const dstTokenV1 = config.sdkConverter.findTokenConfigV1(
-    dstTokenIdV2,
-    config.tokensArr,
-  );
-  if (!dstTokenV1) {
+  const dstToken = config.tokens.get(dstTokenIdV2);
+  if (!dstToken) {
     // This is a token Connect is not aware of
     throw new Error('Unknown dst token');
   }
@@ -421,10 +427,10 @@ const parseNttReceipt = (
       .toNative(receipt.to)
       .toString(),
     amount: amt,
-    tokenAddress: srcTokenV1.tokenId!.address.toString(),
-    tokenKey: srcTokenV1.key,
+    tokenAddress: srcToken.tokenId!.address.toString(),
+    tokenKey: srcToken.key,
     tokenDecimals: trimmedAmount.decimals,
-    receivedTokenKey: dstTokenV1.key,
+    receivedTokenKey: dstToken.key,
     receiveAmount: amt,
     relayerFee: undefined, // TODO: how to get?
   };

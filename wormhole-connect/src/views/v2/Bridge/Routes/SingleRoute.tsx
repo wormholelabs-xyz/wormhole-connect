@@ -28,6 +28,7 @@ import type { RootState } from 'store';
 import { TokenConfig } from 'config/types';
 import FastestRoute from 'icons/FastestRoute';
 import CheapestRoute from 'icons/CheapestRoute';
+import { useGetTokens } from 'hooks/useGetTokens';
 
 const HIGH_FEE_THRESHOLD = 20; // dollhairs
 
@@ -80,12 +81,9 @@ const SingleRoute = (props: Props) => {
   const theme = useTheme();
   const routeConfig = config.routes.get(props.route.name);
 
-  const {
-    toChain: destChain,
-    destToken,
-    fromChain: sourceChain,
-    token: sourceToken,
-  } = useSelector((state: RootState) => state.transferInput);
+  const { toChain: destChain, fromChain: sourceChain } = useSelector(
+    (state: RootState) => state.transferInput,
+  );
 
   const { usdPrices: tokenPrices } = useSelector(
     (state: RootState) => state.tokenPrices,
@@ -94,12 +92,14 @@ const SingleRoute = (props: Props) => {
   const { name } = props.route;
   const { quote } = props;
 
-  const destTokenConfig = useMemo(
-    () => config.tokens[destToken] as TokenConfig | undefined,
-    [destToken],
-  );
+  const { sourceToken, destToken } = useGetTokens();
 
-  const [feePrice, isHighFee, feeTokenConfig]: [
+  if (!destToken) {
+    // TODO token-refactor lol
+    console.error('COULDNT FIND DEST TOKEN!!!!');
+  }
+
+  const [feePrice, isHighFee, feeToken]: [
     number | undefined,
     boolean,
     TokenConfig | undefined,
@@ -109,22 +109,14 @@ const SingleRoute = (props: Props) => {
     }
 
     const relayFee = amount.whole(quote.relayFee.amount);
-    const feeToken = quote.relayFee.token;
-    const feeTokenConfig = config.sdkConverter.findTokenConfigV1(
-      feeToken,
-      Object.values(config.tokens),
-    );
-    const feePrice = calculateUSDPriceRaw(
-      relayFee,
-      tokenPrices.data,
-      feeTokenConfig,
-    );
+    const feeToken = config.tokens.get(quote.relayFee.token);
+    const feePrice = calculateUSDPriceRaw(relayFee, tokenPrices.data, feeToken);
 
     if (feePrice === undefined) {
       return [undefined, false, undefined];
     }
 
-    return [feePrice, feePrice > HIGH_FEE_THRESHOLD, feeTokenConfig];
+    return [feePrice, feePrice > HIGH_FEE_THRESHOLD, feeToken];
   }, [quote]);
 
   const relayerFee = useMemo(() => {
@@ -132,7 +124,7 @@ const SingleRoute = (props: Props) => {
       return <>You pay gas on {destChain}</>;
     }
 
-    if (!quote || !feePrice || !feeTokenConfig) {
+    if (!quote || !feePrice || !feeToken) {
       return <></>;
     }
 
@@ -140,7 +132,7 @@ const SingleRoute = (props: Props) => {
 
     let feeValue = `${amount.display(
       amount.truncate(quote!.relayFee!.amount, 6),
-    )} ${feeTokenConfig.symbol} (${feePriceFormatted})`;
+    )} ${feeToken.symbol} (${feePriceFormatted})`;
 
     // Wesley made me do it
     // Them PMs :-/
@@ -281,7 +273,6 @@ const SingleRoute = (props: Props) => {
         warning.type === 'DestinationCapacityWarning' &&
         warning.delayDurationSec
       ) {
-        const symbol = config.tokens[destToken].symbol;
         const duration = formatDuration(warning.delayDurationSec);
         messages.push(
           <div key={`${warning.type}-${warning.delayDurationSec}`}>
@@ -290,7 +281,9 @@ const SingleRoute = (props: Props) => {
               <WarningIcon htmlColor={theme.palette.warning.main} />
               <Stack sx={{ padding: '16px 16px 0 16px' }}>
                 <Typography color={theme.palette.warning.main} fontSize={14}>
-                  {`Your transfer to ${destChain} may be delayed due to rate limits set by ${symbol}. If your transfer is delayed, you will need to return after ${duration} to complete the transfer. Please consider this before proceeding.`}
+                  {`Your transfer to ${destChain} may be delayed due to rate limits set by ${
+                    destToken!.display
+                  }. If your transfer is delayed, you will need to return after ${duration} to complete the transfer. Please consider this before proceeding.`}
                 </Typography>
               </Stack>
             </Stack>
@@ -326,14 +319,13 @@ const SingleRoute = (props: Props) => {
 
     const { providedBy, name } = props.route;
 
-    const { symbol } = config.tokens[sourceToken];
-
     let provider = '';
 
     // Special case for Lido NTT
     if (
       name === 'AutomaticNtt' &&
-      symbol === 'wstETH' &&
+      sourceToken &&
+      sourceToken.symbol === 'wstETH' &&
       ((sourceChain === 'Ethereum' && destChain === 'Bsc') ||
         (sourceChain === 'Bsc' && destChain === 'Ethereum'))
     ) {
@@ -370,7 +362,7 @@ const SingleRoute = (props: Props) => {
       return <Typography color="error">Route is unavailable</Typography>;
     }
 
-    if (receiveAmount === undefined || !destTokenConfig) {
+    if (receiveAmount === undefined || !destToken) {
       return null;
     }
 
@@ -380,7 +372,7 @@ const SingleRoute = (props: Props) => {
 
     return (
       <Typography fontSize={18} color={color}>
-        {receiveAmountTrunc} {destTokenConfig.symbol}
+        {receiveAmountTrunc} {destToken.symbol}
       </Typography>
     );
   }, [destToken, receiveAmountTrunc, props.error]);
@@ -397,7 +389,7 @@ const SingleRoute = (props: Props) => {
     let usdValue = calculateUSDPrice(
       receiveAmount,
       tokenPrices.data,
-      destTokenConfig,
+      destToken,
     );
 
     if (usdValue !== '') usdValue = `(${usdValue})`;
@@ -408,7 +400,7 @@ const SingleRoute = (props: Props) => {
         color={theme.palette.text.secondary}
       >{`${usdValue} ${providerText}`}</Typography>
     );
-  }, [destTokenConfig, providerText, receiveAmount, tokenPrices]);
+  }, [destToken, providerText, receiveAmount, tokenPrices]);
 
   // There are three states for the Card area cursor:
   // 1- If no action handler provided, fall back to default
@@ -471,7 +463,7 @@ const SingleRoute = (props: Props) => {
           }}
         >
           <CardHeader
-            avatar={<TokenIcon icon={destTokenConfig?.icon} height={36} />}
+            avatar={<TokenIcon icon={destToken?.icon} height={36} />}
             className={classes.cardHeader}
             title={routeCardHeader}
             subheader={routeCardSubHeader}

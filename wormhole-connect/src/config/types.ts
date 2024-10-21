@@ -22,11 +22,11 @@ import {
   TriggerEventHandler,
   WormholeConnectEventHandler,
 } from 'telemetry/types';
-import { SDKConverter } from './converter';
 
 import RouteOperator from 'routes/operator';
 import { UiConfig } from './ui';
 import { TransferInfo } from 'utils/sdkv2';
+import { Token, TokenCache } from './tokens';
 
 export enum Icon {
   'AVAX' = 1,
@@ -126,7 +126,6 @@ export interface InternalConfig<N extends Network> {
   whLegacy: WormholeContext;
 
   sdkConfig: WormholeConfig;
-  sdkConverter: SDKConverter;
 
   isMainnet: boolean;
 
@@ -142,9 +141,7 @@ export interface InternalConfig<N extends Network> {
   // White lists
   chains: ChainsConfig;
   chainsArr: ChainConfig[];
-  tokens: TokensConfig;
-  tokensArr: TokenConfig[];
-  wrappedTokenAddressCache: WrappedTokenAddressCache;
+  tokens: TokenCache;
 
   routes: RouteOperator;
 
@@ -159,22 +156,22 @@ export interface InternalConfig<N extends Network> {
   guardianSet: GuardianSetData;
 }
 
-export type TokenConfig = {
+export type TokenConfigLegacy = {
   key: string;
   symbol: string;
   nativeChain: Chain;
   icon: Icon | string;
-  tokenId?: TokenId; // if no token id, it is the native token
-  coinGeckoId: string;
-  color?: string;
-  decimals: number;
+  tokenId: TokenId; // if no token id, it is the native token
   wrappedAsset?: string;
   displayName?: string;
 };
 
+export type TokenConfig = TokenConfigLegacy | Token;
+
 export type TokensConfig = { [key: string]: TokenConfig };
 
 export interface ChainConfig extends BaseChainConfig {
+  sdkName: Chain;
   displayName: string;
   explorerUrl: string;
   explorerName: string;
@@ -197,7 +194,7 @@ export type GuardianSetData = {
 
 export type NetworkData = {
   chains: ChainsConfig;
-  tokens: TokensConfig;
+  tokens: TokenConfig[];
   wrappedTokens: TokenAddressesByChain; // wormhole-wrapped tokens
   rpcs: RpcMapping;
   rest: RpcMapping;
@@ -240,7 +237,11 @@ export class WrappedTokenAddressCache {
           this.set(
             key,
             token.nativeChain,
-            WormholeV2.parseAddress(token.nativeChain, token.tokenId.address),
+            // TODO token refactor this is silly
+            WormholeV2.parseAddress(
+              token.nativeChain,
+              token.tokenId.address.toString(),
+            ),
           );
         } catch (e) {
           console.error(`Error caching foreign asset`, token.tokenId, e);

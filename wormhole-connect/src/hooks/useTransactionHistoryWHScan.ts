@@ -8,7 +8,7 @@ import {
 
 import config from 'config';
 import { WORMSCAN } from 'config/constants';
-import { getGasToken, getTokenById, getWrappedToken } from 'utils';
+import { getGasToken, getWrappedToken } from 'utils';
 
 import type { Chain, ChainId } from '@wormhole-foundation/sdk';
 import type { Transaction } from 'config/types';
@@ -139,21 +139,26 @@ const useTransactionHistoryWHScan = (
 
     const tokenChain = chainIdToChain(tokenChainId);
 
-    let tokenConfig = getTokenById({
-      chain: tokenChain,
-      address: standarizedProperties.tokenAddress,
-    });
+    let token = config.tokens.get(
+      tokenChain,
+      standarizedProperties.tokenAddress,
+    );
 
-    if (!tokenConfig) {
+    if (!token) {
       // IMPORTANT:
       // If we don't have the token config from the token address,
       // we can check if we can use the symbol to get it.
       // So far this case is only for SUI and APT
-      if (data?.symbol && config.tokens[data.symbol]) {
-        tokenConfig = config.tokens[data.symbol];
-      } else {
-        return;
+      const foundBySymbol =
+        data?.symbol && config.tokens.findBySymbol(tokenChain, data.symbol);
+      if (foundBySymbol) {
+        token = foundBySymbol;
       }
+    }
+
+    // If we've still failed to get the token, return early
+    if (!token) {
+      return;
     }
 
     const toChain = chainIdToChain(toChainId) as Chain;
@@ -161,9 +166,7 @@ const useTransactionHistoryWHScan = (
     // If the sent token is native to the destination chain, use sent token.
     // Otherwise get the wrapped token for the destination chain.
     const receivedTokenKey =
-      tokenConfig.nativeChain === toChain
-        ? tokenConfig.key
-        : getWrappedToken(tokenConfig)?.key;
+      token.nativeChain === toChain ? token.key : getWrappedToken(token)?.key;
 
     // data.tokenAmount holds the normalized token amount value.
     // Otherwise we need to format standarizedProperties.amount using decimals
@@ -210,7 +213,7 @@ const useTransactionHistoryWHScan = (
       receiveAmount: receiveAmountDisplay,
       fromChain,
       toChain,
-      tokenKey: tokenConfig.key,
+      tokenKey: token.key,
       tokenAddress: standarizedProperties.tokenAddress,
       receivedTokenKey,
       senderTimestamp: sourceChain?.timestamp,
@@ -277,19 +280,18 @@ const useTransactionHistoryWHScan = (
         tx.data.symbol,
         txData.fromChain,
       );
-      const nativeToken = config.tokens[nativeTokenKey];
+      const nativeToken = config.tokens.get(nativeTokenKey);
       if (!nativeToken) return;
 
       const startToken = flagSet.flags?.shouldWrapNative
         ? getGasToken(txData.fromChain)
         : nativeToken;
 
-      const finalTokenConfig = config.sdkConverter.findTokenConfigV1(
+      const finalTokenConfig = config.tokens.get(
         Wormhole.tokenId(
           txData.toChain,
           toNative(txData.toChain, finalTokenAddress).toString(),
         ),
-        config.tokensArr,
       );
 
       if (!finalTokenConfig) return;
@@ -298,8 +300,8 @@ const useTransactionHistoryWHScan = (
 
       // Override with Portico specific data
       txData.tokenKey = startToken.key;
-      txData.tokenAddress = startToken.tokenId?.address || 'native';
-      txData.receivedTokenKey = flagSet.flags?.shouldUnwrapNative
+      txData.tokenAddress = startToken.tokenId.address.toString();
+      txData.receivedTokenKey = flagSet.flags.shouldUnwrapNative
         ? getGasToken(txData.toChain).key
         : finalTokenConfig.key;
       txData.receiveAmount =
@@ -308,7 +310,8 @@ const useTransactionHistoryWHScan = (
               sdkAmount.display(
                 sdkAmount.fromBaseUnits(
                   receiveAmount,
-                  finalTokenConfig.decimals,
+                  8, // TODO token refactor
+                  //finalTokenConfig.decimals,
                 ),
                 0,
               ),

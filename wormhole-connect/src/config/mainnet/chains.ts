@@ -7,6 +7,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Ethereum: {
     ...chains.Ethereum!,
     displayName: 'Ethereum',
+    sdkName: 'Ethereum',
     explorerUrl: 'https://etherscan.io/',
     explorerName: 'Etherscan',
     gasToken: 'ETH',
@@ -17,6 +18,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Bsc: {
     ...chains.Bsc!,
     displayName: 'BSC',
+    sdkName: 'Bsc',
     explorerUrl: 'https://bscscan.com/',
     explorerName: 'BscScan',
     gasToken: 'BNB',
@@ -27,6 +29,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Polygon: {
     ...chains.Polygon!,
     displayName: 'Polygon',
+    sdkName: 'Polygon',
     explorerUrl: 'https://polygonscan.com/',
     explorerName: 'PolygonScan',
     gasToken: 'POL',
@@ -37,6 +40,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Avalanche: {
     ...chains.Avalanche!,
     displayName: 'Avalanche',
+    sdkName: 'Avalanche',
     explorerUrl: 'https://avascan.info/blockchain/c/',
     explorerName: 'Avascan',
     gasToken: 'AVAX',
@@ -47,6 +51,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Fantom: {
     ...chains.Fantom!,
     displayName: 'Fantom',
+    sdkName: 'Fantom',
     explorerUrl: 'https://ftmscan.com/',
     explorerName: 'FTMscan',
     gasToken: 'FTM',
@@ -57,6 +62,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Celo: {
     ...chains.Celo!,
     displayName: 'Celo',
+    sdkName: 'Celo',
     explorerUrl: 'https://explorer.celo.org/mainnet/',
     explorerName: 'Celo Explorer',
     gasToken: 'CELO',
@@ -67,6 +73,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Moonbeam: {
     ...chains.Moonbeam!,
     displayName: 'Moonbeam',
+    sdkName: 'Moonbeam',
     explorerUrl: 'https://moonscan.io/',
     explorerName: 'Moonscan',
     gasToken: 'GLMR',
@@ -77,6 +84,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Solana: {
     ...chains.Solana!,
     displayName: 'Solana',
+    sdkName: 'Solana',
     explorerUrl: 'https://explorer.solana.com/',
     explorerName: 'Solana Explorer',
     gasToken: 'SOL',
@@ -87,6 +95,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Sui: {
     ...chains.Sui!,
     displayName: 'Sui',
+    sdkName: 'Sui',
     explorerUrl: 'https://suiscan.xyz/',
     explorerName: 'Suiscan',
     gasToken: 'SUI',
@@ -97,6 +106,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Aptos: {
     ...chains.Aptos!,
     displayName: 'Aptos',
+    sdkName: 'Aptos',
     explorerUrl: 'https://explorer.aptoslabs.com/',
     explorerName: 'Aptos Explorer',
     gasToken: 'APT',
@@ -107,6 +117,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Base: {
     ...chains.Base!,
     displayName: 'Base',
+    sdkName: 'Base',
     explorerUrl: 'https://basescan.org/',
     explorerName: 'BaseScan',
     gasToken: 'ETHbase',
@@ -118,6 +129,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   //Osmosis: {
   //  ...chains.Osmosis!,
   //  displayName: 'Osmosis',
+  //  sdkName: 'Osmosis',
   //  explorerUrl: 'https://mintscan.io/osmosis/',
   //  explorerName: 'MintScan',
   //  gasToken: 'OSMO',
@@ -128,6 +140,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   //Wormchain: {
   //  ...chains.Wormchain!,
   //  displayName: 'Wormchain',
+  //  sdkName: 'Wormchain',
   //  explorerUrl: '',
   //  explorerName: '',
   //  gasToken: 'WORM',
@@ -138,6 +151,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Arbitrum: {
     ...chains.Arbitrum!,
     displayName: 'Arbitrum',
+    sdkName: 'Arbitrum',
     explorerUrl: 'https://arbiscan.io/',
     explorerName: 'Arbitrum Explorer',
     gasToken: 'ETHarbitrum',
@@ -148,6 +162,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Optimism: {
     ...chains.Optimism!,
     displayName: 'Optimism',
+    sdkName: 'Optimism',
     explorerUrl: 'https://optimistic.etherscan.io/',
     explorerName: 'Optimistic Etherscan',
     gasToken: 'ETHoptimism',
@@ -158,6 +173,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Klaytn: {
     ...chains.Klaytn!,
     displayName: 'Kaia',
+    sdkName: 'Klaytn',
     explorerUrl: 'https://kaiascope.com/',
     explorerName: 'Kaia Scope',
     gasToken: 'KLAY',
@@ -168,6 +184,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   //Evmos: {
   //  ...chains.Evmos!,
   //  displayName: 'Evmos',
+  //  sdkName: 'Evmos',
   //  explorerUrl: 'https://www.mintscan.io/evmos/',
   //  explorerName: 'MintScan',
   //  gasToken: 'EVMOS',
@@ -178,6 +195,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   //Kujira: {
   //  ...chains.Kujira!,
   //  displayName: 'Kujira',
+  //  sdkName: 'Kujira',
   //  explorerUrl: 'https://finder.kujira.app/kaiyo-1/',
   //  explorerName: 'Kujira Finder',
   //  gasToken: 'KUJI',
@@ -188,6 +206,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   //Injective: {
   //  ...chains.Injective!,
   //  displayName: 'Injective',
+  //  sdkName: 'Injective',
   //  explorerUrl: 'https://explorer.injective.network/',
   //  explorerName: 'Injective Explorer',
   //  gasToken: 'INJ',
@@ -198,6 +217,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Scroll: {
     ...chains.Scroll!,
     displayName: 'Scroll',
+    sdkName: 'Scroll',
     explorerUrl: 'https://scrollscan.com/',
     explorerName: 'Scrollscan',
     gasToken: 'ETHscroll',
@@ -208,6 +228,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Blast: {
     ...chains.Blast!,
     displayName: 'Blast',
+    sdkName: 'Blast',
     explorerUrl: 'https://blastscan.io/',
     explorerName: 'Blastscan',
     gasToken: 'ETHblast',
@@ -218,6 +239,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Xlayer: {
     ...chains.Xlayer!,
     displayName: 'X Layer',
+    sdkName: 'Xlayer',
     explorerUrl: 'https://www.okx.com/web3/explorer/xlayer/',
     explorerName: 'OKX Explorer',
     gasToken: 'OKB',
@@ -228,6 +250,7 @@ export const MAINNET_CHAINS: ChainsConfig = {
   Mantle: {
     ...chains.Mantle!,
     displayName: 'Mantle',
+    sdkName: 'Mantle',
     explorerUrl: 'https://explorer.mantle.xyz/',
     explorerName: 'Mantle Explorer',
     gasToken: 'MNT',

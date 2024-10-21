@@ -1,17 +1,18 @@
-import { Icon, TokensConfig, TokenAddressesByChain } from '../types';
+import { Icon, TokenAddressesByChain, TokenConfig } from '../types';
 
-export const MAINNET_TOKENS: TokensConfig = {
-  ETH: {
+export const MAINNET_TOKENS: TokenConfig[] = [
+  {
     key: 'ETH',
     symbol: 'ETH',
     nativeChain: 'Ethereum',
     icon: Icon.ETH,
-    coinGeckoId: 'ethereum',
-    color: '#38487d',
-    decimals: 18,
     wrappedAsset: 'WETH',
+    tokenId: {
+      chain: 'Ethereum',
+      address: 'native',
+    },
   },
-  WETH: {
+  {
     key: 'WETH',
     symbol: 'WETH',
     nativeChain: 'Ethereum',
@@ -20,11 +21,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Ethereum',
       address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     },
-    coinGeckoId: 'ethereum',
-    color: '#62688F',
-    decimals: 18,
   },
-  USDCeth: {
+  {
     key: 'USDCeth',
     symbol: 'USDC',
     nativeChain: 'Ethereum',
@@ -33,11 +31,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Ethereum',
       address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     },
-    coinGeckoId: 'usd-coin',
-    color: '#ffffff',
-    decimals: 6,
   },
-  WBTC: {
+  {
     key: 'WBTC',
     symbol: 'WBTC',
     nativeChain: 'Ethereum',
@@ -46,11 +41,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Ethereum',
       address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
     },
-    coinGeckoId: 'wrapped-bitcoin',
-    color: '#ffffff',
-    decimals: 8,
   },
-  USDT: {
+  {
     key: 'USDT',
     symbol: 'USDT',
     nativeChain: 'Ethereum',
@@ -59,11 +51,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Ethereum',
       address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     },
-    coinGeckoId: 'tether',
-    color: '#ffffff',
-    decimals: 6,
   },
-  DAI: {
+  {
     key: 'DAI',
     symbol: 'DAI',
     nativeChain: 'Ethereum',
@@ -72,11 +61,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Ethereum',
       address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     },
-    coinGeckoId: 'dai',
-    color: '#FEFEFD',
-    decimals: 18,
   },
-  BUSD: {
+  {
     key: 'BUSD',
     symbol: 'BUSD',
     nativeChain: 'Ethereum',
@@ -85,21 +71,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Ethereum',
       address: '0x4Fabb145d64652a948d72533023f6E7A623C7C53',
     },
-    coinGeckoId: 'binance-usd',
-    color: '#F0B90B',
-    decimals: 18,
   },
-  POL: {
+  {
     key: 'POL',
     symbol: 'POL',
     nativeChain: 'Polygon',
     icon: Icon.POLYGON,
-    coinGeckoId: 'matic-network',
-    color: '#8247E5',
-    decimals: 18,
     wrappedAsset: 'WPOL',
+    tokenId: {
+      chain: 'Polygon',
+      address: 'native',
+    },
   },
-  WPOL: {
+  {
     key: 'WPOL',
     symbol: 'WPOL',
     nativeChain: 'Polygon',
@@ -108,11 +92,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Polygon',
       address: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     },
-    coinGeckoId: 'matic-network',
-    color: '#8247E5',
-    decimals: 18,
   },
-  WETHpolygon: {
+  {
     key: 'WETHpolygon',
     symbol: 'WETH',
     nativeChain: 'Polygon',
@@ -121,11 +102,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Polygon',
       address: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
     },
-    coinGeckoId: 'ethereum',
-    color: '#D53424',
-    decimals: 18,
   },
-  USDCpolygon: {
+  {
     key: 'USDCpolygon',
     symbol: 'USDC',
     nativeChain: 'Polygon',
@@ -134,11 +112,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Polygon',
       address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
     },
-    coinGeckoId: 'usd-coin',
-    color: '#2774CA',
-    decimals: 6,
   },
-  USDTpolygon: {
+  {
     key: 'USDTpolygon',
     symbol: 'USDT',
     nativeChain: 'Polygon',
@@ -147,21 +122,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Polygon',
       address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
     },
-    coinGeckoId: 'tether',
-    color: '#ffffff',
-    decimals: 6,
   },
-  BNB: {
+  {
     key: 'BNB',
     symbol: 'BNB',
     nativeChain: 'Bsc',
     icon: Icon.BNB,
-    coinGeckoId: 'binancecoin',
-    color: '#F3BA30',
-    decimals: 18,
     wrappedAsset: 'WBNB',
+    tokenId: {
+      chain: 'Bsc',
+      address: 'native',
+    },
   },
-  WBNB: {
+  {
     key: 'WBNB',
     symbol: 'WBNB',
     nativeChain: 'Bsc',
@@ -170,11 +143,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Bsc',
       address: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
     },
-    coinGeckoId: 'binancecoin',
-    color: '#F3BA30',
-    decimals: 18,
   },
-  USDCbnb: {
+  {
     key: 'USDCbnb',
     symbol: 'USDC',
     nativeChain: 'Bsc',
@@ -183,21 +153,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Bsc',
       address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
     },
-    coinGeckoId: 'usd-coin',
-    color: '#2774CA',
-    decimals: 18,
   },
-  AVAX: {
+  {
     key: 'AVAX',
     symbol: 'AVAX',
     nativeChain: 'Avalanche',
     icon: Icon.AVAX,
-    coinGeckoId: 'avalanche-2',
-    color: '#E84141',
-    decimals: 18,
     wrappedAsset: 'WAVAX',
+    tokenId: {
+      chain: 'Avalanche',
+      address: 'native',
+    },
   },
-  WAVAX: {
+  {
     key: 'WAVAX',
     symbol: 'WAVAX',
     nativeChain: 'Avalanche',
@@ -206,11 +174,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Avalanche',
       address: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7',
     },
-    coinGeckoId: 'avalanche-2',
-    color: '#E84141',
-    decimals: 18,
   },
-  USDCavax: {
+  {
     key: 'USDCavax',
     symbol: 'USDC',
     nativeChain: 'Avalanche',
@@ -219,11 +184,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Avalanche',
       address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
     },
-    coinGeckoId: 'usd-coin',
-    color: '#2774CA',
-    decimals: 6,
   },
-  USDTavax: {
+  {
     key: 'USDTavax',
     symbol: 'USDT',
     nativeChain: 'Avalanche',
@@ -232,11 +194,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Avalanche',
       address: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7',
     },
-    coinGeckoId: 'tether',
-    color: '#ffffff',
-    decimals: 6,
   },
-  WETHavax: {
+  {
     key: 'WETHavax',
     symbol: 'WETH',
     nativeChain: 'Avalanche',
@@ -245,21 +204,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Avalanche',
       address: '0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB',
     },
-    coinGeckoId: 'ethereum',
-    color: '#62688F',
-    decimals: 18,
   },
-  FTM: {
+  {
     key: 'FTM',
     symbol: 'FTM',
     nativeChain: 'Fantom',
     icon: Icon.FANTOM,
-    coinGeckoId: 'fantom',
-    color: '#12B4EC',
-    decimals: 18,
     wrappedAsset: 'WFTM',
+    tokenId: {
+      chain: 'Fantom',
+      address: 'native',
+    },
   },
-  WFTM: {
+  {
     key: 'WFTM',
     symbol: 'WFTM',
     nativeChain: 'Fantom',
@@ -268,11 +225,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Fantom',
       address: '0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83',
     },
-    coinGeckoId: 'fantom',
-    color: '#12B4EC',
-    decimals: 18,
   },
-  USDCfantom: {
+  {
     key: 'USDCfantom',
     symbol: 'USDC.e',
     nativeChain: 'Fantom',
@@ -281,11 +235,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Fantom',
       address: '0x2F733095B80A04b38b0D10cC884524a3d09b836a',
     },
-    coinGeckoId: 'usd-coin',
-    color: '#2774CA',
-    decimals: 6,
   },
-  CELO: {
+  {
     key: 'CELO',
     symbol: 'CELO',
     nativeChain: 'Celo',
@@ -294,11 +245,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Celo',
       address: '0x471EcE3750Da237f93B8E339c536989b8978a438',
     },
-    coinGeckoId: 'celo',
-    color: '#35D07E',
-    decimals: 18,
   },
-  USDTcelo: {
+  {
     key: 'USDTcelo',
     symbol: 'USDT',
     nativeChain: 'Celo',
@@ -307,21 +255,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Celo',
       address: '0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e',
     },
-    coinGeckoId: 'tether',
-    color: '#ffffff',
-    decimals: 6,
   },
-  GLMR: {
+  {
     key: 'GLMR',
     symbol: 'GLMR',
     nativeChain: 'Moonbeam',
     icon: Icon.GLMR,
-    coinGeckoId: 'moonbeam',
-    color: '#e1147b',
-    decimals: 18,
     wrappedAsset: 'WGLMR',
+    tokenId: {
+      chain: 'Moonbeam',
+      address: 'native',
+    },
   },
-  WGLMR: {
+  {
     key: 'WGLMR',
     symbol: 'WGLMR',
     nativeChain: 'Moonbeam',
@@ -330,21 +276,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Moonbeam',
       address: '0xAcc15dC74880C9944775448304B263D191c6077F',
     },
-    coinGeckoId: 'moonbeam',
-    color: '#e1147b',
-    decimals: 18,
   },
-  SOL: {
+  {
     key: 'SOL',
     symbol: 'SOL',
     nativeChain: 'Solana',
     icon: Icon.SOLANA,
-    coinGeckoId: 'solana',
-    color: '#8457EF',
-    decimals: 9,
     wrappedAsset: 'WSOL',
+    tokenId: {
+      chain: 'Solana',
+      address: 'native',
+    },
   },
-  WSOL: {
+  {
     key: 'WSOL',
     symbol: 'WSOL',
     nativeChain: 'Solana',
@@ -353,11 +297,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: 'So11111111111111111111111111111111111111112',
     },
     icon: Icon.SOLANA,
-    coinGeckoId: 'solana',
-    color: '#8457EF',
-    decimals: 9,
   },
-  USDCsol: {
+  {
     key: 'USDCsol',
     symbol: 'USDC',
     nativeChain: 'Solana',
@@ -366,11 +307,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
     },
     icon: Icon.USDC,
-    coinGeckoId: 'usd-coin',
-    color: '#2774CA',
-    decimals: 6,
   },
-  USDTsol: {
+  {
     key: 'USDTsol',
     symbol: 'USDT',
     nativeChain: 'Solana',
@@ -379,41 +317,33 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Solana',
       address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
     },
-    coinGeckoId: 'tether',
-    color: '#ffffff',
-    decimals: 6,
   },
-  SUI: {
+  {
     key: 'SUI',
     symbol: 'SUI',
     nativeChain: 'Sui',
     tokenId: { chain: 'Sui', address: '0x2::sui::SUI' },
     icon: Icon.SUI,
-    coinGeckoId: 'sui',
-    color: '#8457EF',
-    decimals: 9,
   },
-  APT: {
+  {
     key: 'APT',
     symbol: 'APT',
     nativeChain: 'Aptos',
     tokenId: { chain: 'Aptos', address: '0x1::aptos_coin::AptosCoin' },
     icon: Icon.APT,
-    coinGeckoId: 'aptos',
-    color: '#8457EF',
-    decimals: 8,
   },
-  ETHarbitrum: {
+  {
     key: 'ETHarbitrum',
     symbol: 'ETH',
     nativeChain: 'Arbitrum',
     icon: Icon.ETH,
-    coinGeckoId: 'ethereum',
-    color: '#5794EC',
-    decimals: 18,
     wrappedAsset: 'WETHarbitrum',
+    tokenId: {
+      chain: 'Arbitrum',
+      address: 'native',
+    },
   },
-  WETHarbitrum: {
+  {
     key: 'WETHarbitrum',
     symbol: 'WETH',
     nativeChain: 'Arbitrum',
@@ -422,11 +352,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Arbitrum',
       address: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
     },
-    coinGeckoId: 'ethereum',
-    color: '#5794EC',
-    decimals: 18,
   },
-  USDCarbitrum: {
+  {
     key: 'USDCarbitrum',
     symbol: 'USDC',
     nativeChain: 'Arbitrum',
@@ -435,11 +362,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Arbitrum',
       address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     },
-    coinGeckoId: 'usd-coin',
-    color: '#2774CA',
-    decimals: 6,
   },
-  USDTarbitrum: {
+  {
     key: 'USDTarbitrum',
     symbol: 'USDT',
     nativeChain: 'Arbitrum',
@@ -448,21 +372,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Arbitrum',
       address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
     },
-    coinGeckoId: 'tether',
-    color: '#ffffff',
-    decimals: 6,
   },
-  ETHoptimism: {
+  {
     key: 'ETHoptimism',
     symbol: 'ETH',
     nativeChain: 'Optimism',
     icon: Icon.ETH,
-    coinGeckoId: 'ethereum',
-    color: '#D53424',
-    decimals: 18,
     wrappedAsset: 'WETHoptimism',
+    tokenId: {
+      chain: 'Optimism',
+      address: 'native',
+    },
   },
-  WETHoptimism: {
+  {
     key: 'WETHoptimism',
     symbol: 'WETH',
     nativeChain: 'Optimism',
@@ -471,11 +393,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Optimism',
       address: '0x4200000000000000000000000000000000000006',
     },
-    coinGeckoId: 'ethereum',
-    color: '#D53424',
-    decimals: 18,
   },
-  USDCoptimism: {
+  {
     key: 'USDCoptimism',
     symbol: 'USDC',
     nativeChain: 'Optimism',
@@ -484,11 +403,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Optimism',
       address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
     },
-    coinGeckoId: 'usd-coin',
-    color: '#2774CA',
-    decimals: 6,
   },
-  USDToptimism: {
+  {
     key: 'USDToptimism',
     symbol: 'USDT',
     nativeChain: 'Optimism',
@@ -497,11 +413,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Optimism',
       address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     },
-    coinGeckoId: 'tether',
-    color: '#ffffff',
-    decimals: 6,
   },
-  WETHbsc: {
+  {
     key: 'WETHbsc',
     symbol: 'WETH',
     nativeChain: 'Bsc',
@@ -510,11 +423,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Bsc',
       address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8',
     },
-    coinGeckoId: 'ethereum',
-    color: '#62688F',
-    decimals: 18,
   },
-  USDTbsc: {
+  {
     key: 'USDTbsc',
     symbol: 'USDT',
     nativeChain: 'Bsc',
@@ -523,21 +433,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Bsc',
       address: '0x55d398326f99059fF775485246999027B3197955',
     },
-    coinGeckoId: 'tether',
-    color: '#ffffff',
-    decimals: 18,
   },
-  ETHbase: {
+  {
     key: 'ETHbase',
     symbol: 'ETH',
     nativeChain: 'Base',
     icon: Icon.ETH,
-    coinGeckoId: 'ethereum',
-    color: '#62688F',
-    decimals: 18,
     wrappedAsset: 'WETHbase',
+    tokenId: {
+      chain: 'Base',
+      address: 'native',
+    },
   },
-  WETHbase: {
+  {
     key: 'WETHbase',
     symbol: 'WETH',
     nativeChain: 'Base',
@@ -546,11 +454,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Base',
       address: '0x4200000000000000000000000000000000000006',
     },
-    coinGeckoId: 'ethereum',
-    color: '#62688F',
-    decimals: 18,
   },
-  USDCbase: {
+  {
     key: 'USDCbase',
     symbol: 'USDC',
     nativeChain: 'Base',
@@ -559,11 +464,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Base',
       address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
     },
-    coinGeckoId: 'usd-coin',
-    color: '#2774CA',
-    decimals: 6,
   },
-  USDTbase: {
+  {
     key: 'USDTbase',
     symbol: 'USDT',
     nativeChain: 'Base',
@@ -572,11 +474,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Base',
       address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
     },
-    coinGeckoId: 'tether',
-    color: '#ffffff',
-    decimals: 6,
   },
-  wstETHbase: {
+  {
     key: 'wstETHbase',
     symbol: 'wstETH',
     nativeChain: 'Base',
@@ -585,11 +484,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452',
     },
     icon: Icon.WSTETH,
-    coinGeckoId: 'wrapped-steth',
-    color: '#3AA3FF',
-    decimals: 18,
   },
-  wstETH: {
+  {
     key: 'wstETH',
     symbol: 'wstETH',
     nativeChain: 'Ethereum',
@@ -598,11 +494,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0',
     },
     icon: Icon.WSTETH,
-    coinGeckoId: 'wrapped-steth',
-    color: '#3AA3FF',
-    decimals: 18,
   },
-  wstETHarbitrum: {
+  {
     key: 'wstETHarbitrum',
     symbol: 'wstETH',
     nativeChain: 'Arbitrum',
@@ -611,11 +504,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0x5979D7b546E38E414F7E9822514be443A4800529',
     },
     icon: Icon.WSTETH,
-    coinGeckoId: 'wrapped-steth',
-    color: '#3AA3FF',
-    decimals: 18,
   },
-  wstETHoptimism: {
+  {
     key: 'wstETHoptimism',
     symbol: 'wstETH',
     nativeChain: 'Optimism',
@@ -624,11 +514,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb',
     },
     icon: Icon.WSTETH,
-    coinGeckoId: 'wrapped-steth',
-    color: '#3AA3FF',
-    decimals: 18,
   },
-  wstETHpolygon: {
+  {
     key: 'wstETHpolygon',
     symbol: 'wstETH',
     nativeChain: 'Polygon',
@@ -637,21 +524,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD',
     },
     icon: Icon.WSTETH,
-    coinGeckoId: 'wrapped-steth',
-    color: '#3AA3FF',
-    decimals: 18,
   },
-  KLAY: {
+  {
     key: 'KLAY',
     symbol: 'KLAY',
-    decimals: 18,
     nativeChain: 'Klaytn',
     icon: Icon.KLAY,
-    coinGeckoId: 'klay-token',
-    color: '#fa4212',
     wrappedAsset: 'WKLAY',
+    tokenId: {
+      chain: 'Klaytn',
+      address: 'native',
+    },
   },
-  WKLAY: {
+  {
     key: 'WKLAY',
     symbol: 'WKLAY',
     displayName: 'wKLAY',
@@ -661,11 +546,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Klaytn',
       address: '0xe4f05A66Ec68B54A58B17c22107b02e0232cC817',
     },
-    coinGeckoId: 'wrapped-klay',
-    color: '#fa4212',
-    decimals: 18,
   },
-  PYTH: {
+  {
     key: 'PYTH',
     symbol: 'PYTH',
     nativeChain: 'Solana',
@@ -674,20 +556,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: 'HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3',
     },
     icon: Icon.PYTH,
-    coinGeckoId: 'pyth-network',
-    color: '#E6DAFE',
-    decimals: 6,
   },
-  ETHscroll: {
+  {
     key: 'ETHscroll',
     symbol: 'ETH',
     nativeChain: 'Scroll',
     icon: Icon.SCROLL,
-    coinGeckoId: 'ethereum',
-    decimals: 18,
     wrappedAsset: 'WETHscroll',
+    tokenId: {
+      chain: 'Scroll',
+      address: 'native',
+    },
   },
-  WETHscroll: {
+  {
     key: 'WETHscroll',
     symbol: 'WETH',
     nativeChain: 'Scroll',
@@ -696,19 +577,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Scroll',
       address: '0x5300000000000000000000000000000000000004',
     },
-    coinGeckoId: 'ethereum',
-    decimals: 18,
   },
-  ETHblast: {
+  {
     key: 'ETHblast',
     symbol: 'ETH',
     nativeChain: 'Blast',
     icon: Icon.BLAST,
-    coinGeckoId: 'ethereum',
-    decimals: 18,
     wrappedAsset: 'WETHblast',
+    tokenId: {
+      chain: 'Blast',
+      address: 'native',
+    },
   },
-  WETHblast: {
+  {
     key: 'WETHblast',
     symbol: 'WETH',
     nativeChain: 'Blast',
@@ -717,19 +598,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Blast',
       address: '0x9D020B1697035d9d54f115194c9e04a1e4Eb9aF7',
     },
-    coinGeckoId: 'ethereum',
-    decimals: 18,
   },
-  OKB: {
+  {
     key: 'OKB',
     symbol: 'OKB',
     nativeChain: 'Xlayer',
     icon: Icon.XLAYER,
-    coinGeckoId: 'okb',
-    decimals: 18,
     wrappedAsset: 'WOKB',
+    tokenId: {
+      chain: 'Xlayer',
+      address: 'native',
+    },
   },
-  WOKB: {
+  {
     key: 'WOKB',
     symbol: 'WOKB',
     nativeChain: 'Xlayer',
@@ -738,19 +619,19 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Xlayer',
       address: '0xe538905cf8410324e03A5A23C1c177a474D59b2b',
     },
-    coinGeckoId: 'okb',
-    decimals: 18,
   },
-  MNT: {
+  {
     key: 'MNT',
     symbol: 'MNT',
     nativeChain: 'Mantle',
     icon: Icon.MANTLE,
-    coinGeckoId: 'mantle',
-    decimals: 18,
     wrappedAsset: 'WMNT',
+    tokenId: {
+      chain: 'Mantle',
+      address: 'native',
+    },
   },
-  WMNT: {
+  {
     key: 'WMNT',
     symbol: 'WMNT',
     nativeChain: 'Mantle',
@@ -759,10 +640,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       chain: 'Mantle',
       address: '0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8',
     },
-    coinGeckoId: 'mantle',
-    decimals: 18,
   },
-  tBTC: {
+  {
     key: 'tBTC',
     symbol: 'tBTC',
     nativeChain: 'Ethereum',
@@ -771,11 +650,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0x18084fbA666a33d37592fA2633fD49a74DD93a88',
     },
     icon: Icon.TBTC,
-    coinGeckoId: 'tbtc',
-    color: '#000000',
-    decimals: 18,
   },
-  tBTCpolygon: {
+  {
     key: 'tBTCpolygon',
     symbol: 'tBTC',
     nativeChain: 'Polygon',
@@ -784,11 +660,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0x236aa50979D5f3De3Bd1Eeb40E81137F22ab794b',
     },
     icon: Icon.TBTC,
-    coinGeckoId: 'tbtc',
-    color: '#000000',
-    decimals: 18,
   },
-  tBTCoptimism: {
+  {
     key: 'tBTCoptimism',
     symbol: 'tBTC',
     nativeChain: 'Optimism',
@@ -797,11 +670,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0x6c84a8f1c29108F47a79964b5Fe888D4f4D0dE40',
     },
     icon: Icon.TBTC,
-    coinGeckoId: 'tbtc',
-    color: '#000000',
-    decimals: 18,
   },
-  tBTCarbitrum: {
+  {
     key: 'tBTCarbitrum',
     symbol: 'tBTC',
     nativeChain: 'Arbitrum',
@@ -810,11 +680,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0x6c84a8f1c29108F47a79964b5Fe888D4f4D0dE40',
     },
     icon: Icon.TBTC,
-    coinGeckoId: 'tbtc',
-    color: '#000000',
-    decimals: 18,
   },
-  tBTCbase: {
+  {
     key: 'tBTCbase',
     symbol: 'tBTC',
     nativeChain: 'Base',
@@ -823,11 +690,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '0x236aa50979D5f3De3Bd1Eeb40E81137F22ab794b',
     },
     icon: Icon.TBTC,
-    coinGeckoId: 'tbtc',
-    color: '#000000',
-    decimals: 18,
   },
-  tBTCsol: {
+  {
     key: 'tBTCsol',
     symbol: 'tBTC',
     nativeChain: 'Solana',
@@ -836,11 +700,8 @@ export const MAINNET_TOKENS: TokensConfig = {
       address: '6DNSN2BJsaPFdFFc1zP37kkeNe4Usc1Sqkzr9C9vPWcU',
     },
     icon: Icon.TBTC,
-    coinGeckoId: 'tbtc',
-    color: '#000000',
-    decimals: 8,
   },
-};
+];
 
 export const MAINNET_WRAPPED_TOKENS: TokenAddressesByChain = {
   WETH: {

@@ -2,16 +2,20 @@ import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import config from 'config';
-import { setToken, setSupportedSourceTokens } from 'store/transferInput';
+import {
+  setToken,
+  setSupportedSourceTokens,
+  clearToken,
+} from 'store/transferInput';
 
 import type { Chain } from '@wormhole-foundation/sdk';
-import type { TokenConfig } from 'config/types';
+import type { Token } from 'config/tokens';
 
 type Props = {
   sourceChain: Chain | undefined;
-  sourceToken: string;
+  sourceToken: Token | undefined;
   destChain: Chain | undefined;
-  destToken: string;
+  destToken: Token | undefined;
   route?: string;
 };
 
@@ -34,30 +38,28 @@ const useComputeSourceTokens = (props: Props): ReturnProps => {
     let active = true;
 
     const computeSrcTokens = async () => {
-      let supported: Array<TokenConfig> = [];
+      let supported: Token[] = [];
 
       // Start fetching and setting all supported tokens
       setIsFetching(true);
 
       try {
-        supported = await config.routes.allSupportedSourceTokens(
-          config.tokens[destToken],
-          sourceChain,
-          destChain,
-        );
+        supported = await config.routes.allSupportedSourceTokens(sourceChain);
       } catch (e) {
         console.error(e);
       }
 
+      console.log(supported);
+
       if (active) {
-        dispatch(setSupportedSourceTokens(supported));
+        dispatch(setSupportedSourceTokens(supported.map((t) => t.tuple)));
         const isTokenSupported =
-          sourceToken && supported.some((t) => t.key === sourceToken);
+          sourceToken && supported.some((t) => t.equals(sourceToken));
         if (!isTokenSupported) {
-          dispatch(setToken(''));
+          dispatch(clearToken());
         }
-        if (supported.length === 1 && sourceToken === '') {
-          dispatch(setToken(supported[0].key));
+        if (supported.length === 1) {
+          dispatch(setToken(supported[0].tuple));
         }
       }
 

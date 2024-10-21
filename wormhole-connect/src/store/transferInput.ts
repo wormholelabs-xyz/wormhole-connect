@@ -1,10 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import config from 'config';
-import { TokenConfig } from 'config/types';
-import { TransferWallet, walletAcceptedChains } from 'utils/wallet';
+import { Token, TokenTuple } from 'config/tokens';
+import {
+  TransferWallet,
+  walletAcceptedChains,
+} from 'utils/wallet';
 import { clearWallet, setWalletError, WalletData } from './wallet';
-import { DataWrapper, getEmptyDataWrapper } from './helpers';
-import { getTokenDecimals } from 'utils';
+import {
+  DataWrapper,
+  errorDataWrapper,
+  fetchDataWrapper,
+  getEmptyDataWrapper,
+  receiveDataWrapper,
+} from './helpers';
 import { Chain, amount } from '@wormhole-foundation/sdk';
 
 export type Balance = {
@@ -50,11 +58,11 @@ export const accessBalance = (
   balances: WalletBalances | undefined,
   walletAddress: WalletAddress | undefined,
   chain: Chain | undefined,
-  token: string,
+  token: Token,
 ): Balance | undefined => {
   const chainBalances = accessChainBalances(balances, walletAddress, chain);
   if (!chainBalances) return undefined;
-  return chainBalances.balances[token];
+  return chainBalances.balances[token.key];
 };
 
 export type ValidationErr = string;
@@ -65,7 +73,6 @@ export type TransferValidations = {
   fromChain: ValidationErr;
   toChain: ValidationErr;
   token: ValidationErr;
-  destToken: ValidationErr;
   amount: ValidationErr;
   toNativeToken: ValidationErr;
   relayerFee: ValidationErr;
@@ -77,8 +84,8 @@ export interface TransferInputState {
   validations: TransferValidations;
   fromChain: Chain | undefined;
   toChain: Chain | undefined;
-  token: string;
-  destToken: string;
+  token: TokenTuple | undefined;
+  destToken: TokenTuple | undefined;
   amount?: amount.Amount;
   receiveAmount: DataWrapper<string>;
   route?: string;
@@ -92,19 +99,25 @@ export interface TransferInputState {
   };
   isTransactionInProgress: boolean;
   receiverNativeBalance: string | undefined;
-  supportedSourceTokens: TokenConfig[];
-  supportedDestTokens: TokenConfig[];
+  supportedSourceTokens: TokenTuple[];
+  supportedDestTokens: TokenTuple[];
 }
 
 // This is a function because config might have changed since we last cleared this store
 function getInitialState(): TransferInputState {
+  const { fromChain, toChain, tokenKey, toTokenKey } =
+    config.ui.defaultInputs || {};
+  const fromTokenTuple =
+    fromChain && tokenKey ? ([fromChain, tokenKey] as TokenTuple) : undefined;
+  const toTokenTuple =
+    toChain && toTokenKey ? ([toChain, toTokenKey] as TokenTuple) : undefined;
+
   return {
     showValidationState: false,
     validations: {
       fromChain: '',
       toChain: '',
       token: '',
-      destToken: '',
       amount: '',
       toNativeToken: '',
       sendingWallet: '',
@@ -112,10 +125,10 @@ function getInitialState(): TransferInputState {
       relayerFee: '',
       receiveAmount: '',
     },
-    fromChain: config.ui.defaultInputs?.fromChain || undefined,
-    toChain: config.ui.defaultInputs?.toChain || undefined,
-    token: config.ui.defaultInputs?.tokenKey || '',
-    destToken: config.ui.defaultInputs?.toTokenKey || '',
+    fromChain,
+    toChain,
+    token: fromTokenTuple,
+    destToken: toTokenTuple,
     amount: undefined,
     receiveAmount: getEmptyDataWrapper(),
     preferredRouteName: config.ui.defaultInputs?.preferredRouteName,
@@ -135,6 +148,9 @@ function getInitialState(): TransferInputState {
 }
 
 const performModificationsIfFromChainChanged = (state: TransferInputState) => {
+  state.token = undefined;
+  /*
+    * TODO token refactor makes this more difficult
   const { fromChain, token } = state;
   if (token) {
     const tokenConfig = config.tokens[token];
@@ -161,11 +177,15 @@ const performModificationsIfFromChainChanged = (state: TransferInputState) => {
         '';
     }
   }
+  */
 };
 
 const performModificationsIfToChainChanged = (state: TransferInputState) => {
-  const { toChain, destToken } = state;
+  state.destToken = undefined;
+  /*
+    * TODO token refactor makes this more difficult
 
+  const { toChain, destToken } = state;
   if (destToken) {
     const tokenConfig = config.tokens[destToken];
     if (!toChain) {
@@ -183,6 +203,7 @@ const performModificationsIfToChainChanged = (state: TransferInputState) => {
         '';
     }
   }
+  */
 };
 
 export const transferInputSlice = createSlice({
@@ -208,15 +229,21 @@ export const transferInputSlice = createSlice({
     // user input
     setToken: (
       state: TransferInputState,
-      { payload }: PayloadAction<string>,
+      { payload }: PayloadAction<TokenTuple>,
     ) => {
       state.token = payload;
     },
+    clearToken: (state: TransferInputState) => {
+      state.token = undefined;
+    },
     setDestToken: (
       state: TransferInputState,
-      { payload }: PayloadAction<string>,
+      { payload }: PayloadAction<TokenTuple>,
     ) => {
       state.destToken = payload;
+    },
+    clearDestToken: (state: TransferInputState) => {
+      state.destToken = undefined;
     },
     setFromChain: (
       state: TransferInputState,
@@ -237,17 +264,34 @@ export const transferInputSlice = createSlice({
       { payload }: PayloadAction<string>,
     ) => {
       if (state.token && state.fromChain) {
-        const tokenConfig = config.tokens[state.token];
-        const decimals = getTokenDecimals(state.fromChain, tokenConfig);
-        const parsed = amount.parse(payload, decimals);
-        if (amount.units(parsed) === 0n) {
-          state.amount = undefined;
-        } else {
-          state.amount = parsed;
+        const token = config.tokens.get(state.token);
+        if (token) {
+          const { decimals } = token;
+          const parsed = amount.parse(payload, decimals);
+          if (amount.units(parsed) === 0n) {
+            state.amount = undefined;
+          } else {
+            state.amount = parsed;
+          }
         }
       } else {
         console.warn(`Can't call setAmount without a fromChain and token`);
       }
+    },
+    setReceiveAmount: (
+      state: TransferInputState,
+      { payload }: PayloadAction<string>,
+    ) => {
+      state.receiveAmount = receiveDataWrapper(payload);
+    },
+    setFetchingReceiveAmount: (state: TransferInputState) => {
+      state.receiveAmount = fetchDataWrapper();
+    },
+    setReceiveAmountError: (
+      state: TransferInputState,
+      { payload }: PayloadAction<string>,
+    ) => {
+      state.receiveAmount = errorDataWrapper(payload);
     },
     updateBalances: (
       state: TransferInputState,
@@ -296,13 +340,13 @@ export const transferInputSlice = createSlice({
     },
     setSupportedSourceTokens: (
       state: TransferInputState,
-      { payload }: PayloadAction<TokenConfig[]>,
+      { payload }: PayloadAction<TokenTuple[]>,
     ) => {
       state.supportedSourceTokens = payload;
     },
     setSupportedDestTokens: (
       state: TransferInputState,
-      { payload }: PayloadAction<TokenConfig[]>,
+      { payload }: PayloadAction<TokenTuple[]>,
     ) => {
       state.supportedDestTokens = payload;
     },
@@ -373,7 +417,9 @@ export const selectChain = async (
 export const {
   setValidations,
   setToken,
+  clearToken,
   setDestToken,
+  clearDestToken,
   setFromChain,
   setToChain,
   setAmount,

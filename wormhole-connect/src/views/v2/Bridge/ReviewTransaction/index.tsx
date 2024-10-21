@@ -44,6 +44,7 @@ import { toDecimals } from 'utils/balance';
 import { useUSDamountGetter } from 'hooks/useUSDamountGetter';
 import SendError from './SendError';
 import { ERR_USER_REJECTED } from 'telemetry/types';
+import { useGetTokens } from 'hooks/useGetTokens';
 
 const useStyles = makeStyles()((theme) => ({
   container: {
@@ -86,8 +87,6 @@ const ReviewTransaction = (props: Props) => {
     amount,
     fromChain: sourceChain,
     toChain: destChain,
-    token: sourceToken,
-    destToken,
     isTransactionInProgress,
     route,
     validations,
@@ -101,9 +100,11 @@ const ReviewTransaction = (props: Props) => {
 
   const getUSDAmount = useUSDamountGetter();
 
+  const { sourceToken, destToken } = useGetTokens();
+
   const { disabled: isGasSliderDisabled, showGasSlider } = useGasSlider({
     destChain,
-    destToken,
+    destToken: destToken!.key,
     route,
     valid: true,
     isTransactionInProgress,
@@ -175,8 +176,6 @@ const ReviewTransaction = (props: Props) => {
 
     dispatch(setIsTransactionInProgress(true));
 
-    const sourceTokenConfig = config.tokens[sourceToken];
-
     try {
       const fromConfig = config.chains[sourceChain!];
 
@@ -199,7 +198,7 @@ const ReviewTransaction = (props: Props) => {
       const [sdkRoute, receipt] = await config.routes
         .get(route)
         .send(
-          sourceTokenConfig,
+          sourceToken,
           amount,
           sourceChain,
           sendingWallet.address,
@@ -224,10 +223,7 @@ const ReviewTransaction = (props: Props) => {
       let relayerFee: RelayerFee | undefined = undefined;
       if (quote.relayFee) {
         const { token, amount } = quote.relayFee;
-        const feeToken = config.sdkConverter.findTokenConfigV1(
-          token,
-          Object.values(config.tokens),
-        );
+        const feeToken = config.tokens.get(token);
 
         const formattedFee = Number.parseFloat(
           toDecimals(amount.amount, amount.decimals, 6),
@@ -247,15 +243,15 @@ const ReviewTransaction = (props: Props) => {
         recipient: receivingWallet.address,
         toChain: receipt.to,
         fromChain: receipt.from,
-        tokenAddress: getWrappedToken(sourceTokenConfig).tokenId!.address,
-        tokenKey: sourceTokenConfig.key,
+        tokenAddress: getWrappedToken(sourceToken).tokenId!.address.toString(),
+        tokenKey: sourceToken.key,
         tokenDecimals: getTokenDecimals(
           sourceChain,
-          getWrappedToken(sourceTokenConfig),
+          getWrappedToken(sourceToken),
         ),
-        receivedTokenKey: config.tokens[destToken].key, // TODO: possibly wrong (e..g if portico swap fails)
+        receivedTokenKey: destToken.key, // TODO: possibly wrong (e..g if portico swap fails)
         relayerFee,
-        receiveAmount: (quote.destinationToken.amount),
+        receiveAmount: quote.destinationToken.amount,
         receiveNativeAmount,
         eta: quote.eta || 0,
       };

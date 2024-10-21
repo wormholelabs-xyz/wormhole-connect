@@ -11,7 +11,7 @@ import { amount as sdkAmount } from '@wormhole-foundation/sdk';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import TokenIcon from 'icons/TokenIcons';
 
-import { TokenConfig } from 'config/types';
+import { Token } from 'config/tokens';
 
 import type { Chain } from '@wormhole-foundation/sdk';
 import { getDisplayName, getExplorerUrl, getWrappedToken } from 'utils';
@@ -41,7 +41,7 @@ const useStyles = makeStyles()((theme) => ({
 }));
 
 type TokenItemProps = {
-  token: TokenConfig;
+  token: Token;
   chain: Chain;
   disabled?: boolean;
   onClick: () => void;
@@ -58,7 +58,7 @@ function TokenItem(props: TokenItemProps) {
   // Otherwise, show the wrapped token's address.
   const address =
     chain === token.nativeChain
-      ? token.tokenId?.address
+      ? token.tokenId?.address.toString()
       : getTokenBridgeWrappedTokenAddressSync(
           getWrappedToken(token),
           chain,

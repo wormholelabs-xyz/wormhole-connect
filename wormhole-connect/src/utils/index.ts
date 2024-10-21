@@ -1,14 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { isHexString } from 'ethers';
 import { isValidTransactionDigest, SUI_TYPE_ARG } from '@mysten/sui.js';
-import { TokenId, Context } from 'sdklegacy';
+import { Context } from 'sdklegacy';
 
 import config from 'config';
 import { ChainConfig, TokenConfig } from 'config/types';
+import { Token } from 'config/tokens';
 import { isGatewayChain } from './cosmos';
 import { TokenPrices } from 'store/tokenPrices';
 import {
   Chain,
+  TokenId,
   chainToPlatform,
   amount as sdkAmount,
 } from '@wormhole-foundation/sdk';
@@ -76,12 +78,16 @@ export function getChainConfig(chain: Chain): ChainConfig {
   return chainConfig;
 }
 
-export function getWrappedToken(token: TokenConfig): TokenConfig {
+export function getWrappedToken(token: Token): Token {
+  // TODO token refactor
+
   if (!token) throw new Error('token must be defined');
 
   // if token is not native, return token
   if (token.tokenId) return token;
 
+  /*
+    * TODO token refactor
   // otherwise get wrapped token
   if (!token.tokenId && !token.wrappedAsset)
     throw new Error(`token details misconfigured for ${token.key}`);
@@ -90,26 +96,21 @@ export function getWrappedToken(token: TokenConfig): TokenConfig {
     if (!wrapped) throw new Error('wrapped token not found');
     return wrapped;
   }
+  */
   return token;
 }
 
-export function getWrappedTokenId(token: TokenConfig): TokenId {
+export function getWrappedTokenId(token: Token): TokenId {
   const wrapped = getWrappedToken(token);
   return wrapped.tokenId!;
 }
 
-export function getTokenById(tokenId: TokenId): TokenConfig | undefined {
-  return config.tokensArr.find(
-    (t) =>
-      t.tokenId &&
-      tokenId.chain === t.tokenId.chain &&
-      tokenId.address.toLowerCase() === t.tokenId!.address.toLowerCase(),
-  );
-}
-
-export function getDisplayName(token: TokenConfig, chain: Chain): string {
+export function getDisplayName(token: Token, chain: Chain): string {
   const isWrapped = isWrappedToken(token, chain);
-  const baseName = token.displayName ?? token.symbol;
+  // TODO token refactor: support display names?
+  //const baseName = token.displayName ?? token.symbol;
+
+  const baseName = token.symbol;
 
   if (!isWrapped) {
     return baseName;
@@ -133,8 +134,8 @@ export function getDisplayName(token: TokenConfig, chain: Chain): string {
   return `${prefix}${baseName}`;
 }
 
-export function getGasToken(chain: Chain): TokenConfig {
-  const gasToken = config.tokens[getChainConfig(chain).gasToken];
+export function getGasToken(chain: Chain): Token {
+  const gasToken = config.tokens.getGasToken(chain);
   if (!gasToken) throw new Error(`gas token not found for ${chain}`);
   return gasToken;
 }
@@ -143,17 +144,12 @@ export function getTokenDecimals(chain: Chain, token: TokenConfig): number {
   const chainConfig = config.chains[chain];
   if (!chainConfig) throw new Error(`chain config for ${chain} not found`);
 
-  /*
-  if (token?.tokenId === 'native') {
-    const { decimals } = getGasToken(chain);
-    return decimals;
-  }
-  */
-
-  const { nativeChain, decimals } = token;
+  const { nativeChain } = token;
 
   const platform = chainToPlatform(chain);
   const tokenPlatform = chainToPlatform(nativeChain);
+
+  const decimals = 8; // TODO token refactor
 
   // If the token is native to the chain, return the token's decimals
   if (platform === tokenPlatform) return decimals;
@@ -261,27 +257,13 @@ export function isEqualCaseInsensitive(a: string, b: string) {
   return a.toLowerCase() === b.toLowerCase();
 }
 
-export const sortTokens = (tokens: TokenConfig[], chain: Chain) => {
-  const gasToken = getGasToken(chain);
-  const wrappedGasToken = getWrappedToken(gasToken);
-  return [...tokens].sort((a, b) => {
-    // native tokens first
-    if (a.key === gasToken.key) return -1; // Sort gasToken first
-    if (b.key === gasToken.key) return 1; // Sort gasToken first
-    if (a.key === wrappedGasToken.key) return -1; // Sort wrappedGasToken second
-    if (b.key === wrappedGasToken.key) return 1; // Sort wrappedGasToken second
-    if (a.nativeChain === chain && b.nativeChain !== chain) return -1; // Sort nativeChain tokens third
-    if (b.nativeChain === chain && a.nativeChain !== chain) return 1; // Sort nativeChain tokens third
-    return 0; // Sort the rest
-  });
-};
-
 export const getTokenPrice = (
   tokenPrices: TokenPrices,
-  token: TokenConfig,
+  token: Token,
 ): number | undefined => {
+  // TODO token refactor
   if (tokenPrices && token) {
-    const price = tokenPrices[token.coinGeckoId]?.usd;
+    const price = tokenPrices[token.key]?.usd;
     return price;
   }
   return undefined;
@@ -308,7 +290,7 @@ export const getUSDFormat = (price: number | undefined): string => {
 export const calculateUSDPriceRaw = (
   amount?: sdkAmount.Amount | number,
   tokenPrices?: TokenPrices | null,
-  token?: TokenConfig,
+  token?: Token,
 ): number | undefined => {
   if (typeof amount === 'undefined' || !tokenPrices || !token) {
     return undefined;
@@ -327,7 +309,7 @@ export const calculateUSDPriceRaw = (
 export const calculateUSDPrice = (
   amount?: sdkAmount.Amount | number,
   tokenPrices?: TokenPrices | null,
-  token?: TokenConfig,
+  token?: Token,
 ): string => {
   return getUSDFormat(calculateUSDPriceRaw(amount, tokenPrices, token));
 };
