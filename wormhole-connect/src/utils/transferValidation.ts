@@ -252,13 +252,19 @@ export const validate = async (
     transferInput.toChain &&
     transferInput.token &&
     transferInput.destToken &&
-    transferInput.amount &&
+    transferInput.amount !== undefined; /*&&
     transferInput.routeStates?.some((rs) => rs.supported) !== undefined
       ? true
       : false;
+      */
 
   if (!isCanceled()) {
-    dispatch(setValidations({ validations, showValidationState }));
+    dispatch(
+      setValidations({
+        validations,
+        showValidationState: !!showValidationState,
+      }),
+    );
   }
 };
 
