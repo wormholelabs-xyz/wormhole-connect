@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { QuoteResult } from 'routes/operator';
 import { RootState } from 'store';
-import { RouteState } from 'store/transferInput';
 import { isMinAmountError } from 'utils/sdkv2';
 
 type HookReturn = {
@@ -13,7 +12,7 @@ type HookReturn = {
 
 type Props = {
   balance?: sdkAmount.Amount | null;
-  routes: RouteState[];
+  routes: string[];
   quotesMap: Record<string, QuoteResult | undefined>;
   tokenSymbol: string;
   isLoading: boolean;
@@ -56,7 +55,7 @@ export const useAmountValidation = (props: Props): HookReturn => {
     }
 
     return props.routes.every((route) => {
-      return props.quotesMap[route.name]?.success === false;
+      return props.quotesMap[route]?.success === false;
     });
   }, [props.routes, props.quotesMap]);
 

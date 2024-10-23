@@ -63,7 +63,8 @@ const useRoutesQuotesBulk = (routes: string[], params: Params): HookReturn => {
       !params.sourceChain ||
       !params.sourceToken ||
       !params.destChain ||
-      !params.destToken
+      !params.destToken ||
+      routes.length === 0
     ) {
       return;
     }

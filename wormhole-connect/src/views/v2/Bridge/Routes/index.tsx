@@ -7,7 +7,6 @@ import config from 'config';
 import { RoutesConfig } from 'config/routes';
 import SingleRoute from 'views/v2/Bridge/Routes/SingleRoute';
 
-import { RouteState } from 'store/transferInput';
 import { routes } from '@wormhole-foundation/sdk';
 import { Box, CircularProgress, Skeleton } from '@mui/material';
 
@@ -42,7 +41,7 @@ const useStyles = makeStyles()((theme: any) => ({
 }));
 
 type Props = {
-  routes: RouteState[];
+  routes: string[];
   selectedRoute?: string;
   onRouteChange: (route: string) => void;
   quotes: Record<string, routes.QuoteResult<routes.Options> | undefined>;
@@ -55,21 +54,15 @@ const Routes = ({ ...props }: Props) => {
   const [showAll, setShowAll] = useState(false);
 
   const routes = useMemo(() => {
-    return props.routes.filter((rs) => props.quotes[rs.name] !== undefined);
+    return props.routes.filter((rs) => props.quotes[rs] !== undefined);
   }, [props.routes, props.quotes]);
-
-  const supportedRoutes = useMemo(() => {
-    return routes.filter((rs) => rs.supported);
-  }, [routes]);
 
   const renderRoutes = useMemo(() => {
     if (showAll) {
       return routes;
     }
 
-    const selectedRoute = routes.find(
-      (route) => route.name === props.selectedRoute,
-    );
+    const selectedRoute = routes.find((route) => route === props.selectedRoute);
 
     return selectedRoute ? [selectedRoute] : routes.slice(0, 1);
   }, [showAll, routes]);
@@ -77,7 +70,7 @@ const Routes = ({ ...props }: Props) => {
   const fastestRoute = useMemo(() => {
     return routes.reduce(
       (fastest, route) => {
-        const quote = props.quotes[route.name];
+        const quote = props.quotes[route];
         if (!quote || !quote.success) return fastest;
 
         if (
@@ -85,7 +78,7 @@ const Routes = ({ ...props }: Props) => {
           quote.eta < fastest.eta &&
           quote.eta < 60_000
         ) {
-          return { name: route.name, eta: quote.eta };
+          return { name: route, eta: quote.eta };
         } else {
           return fastest;
         }
@@ -97,14 +90,13 @@ const Routes = ({ ...props }: Props) => {
   const cheapestRoute = useMemo(() => {
     return routes.reduce(
       (cheapest, route) => {
-        const quote = props.quotes[route.name];
-        const rc = config.routes.get(route.name);
-        // TODO put AUTOMATIC_DEPOSIT into RouteState
+        const quote = props.quotes[route];
+        const rc = config.routes.get(route);
         if (!quote || !quote.success || !rc.AUTOMATIC_DEPOSIT) return cheapest;
 
         const amountOut = BigInt(quote.destinationToken.amount.amount);
         if (amountOut > cheapest.amountOut) {
-          return { name: route.name, amountOut };
+          return { name: route, amountOut };
         } else {
           return cheapest;
         }
@@ -141,7 +133,7 @@ const Routes = ({ ...props }: Props) => {
       {props.isLoading && renderRoutes.length === 0 ? (
         <Skeleton variant="rounded" height={153} width="100%" />
       ) : (
-        renderRoutes.map(({ name }, index) => {
+        renderRoutes.map((name, index) => {
           const routeConfig = RoutesConfig[name];
           const isSelected = routeConfig.name === props.selectedRoute;
           const quoteResult = props.quotes[name];
@@ -160,7 +152,7 @@ const Routes = ({ ...props }: Props) => {
               isSelected={isSelected && !quoteError}
               isFastest={name === fastestRoute.name}
               isCheapest={name === cheapestRoute.name}
-              isOnlyChoice={supportedRoutes.length === 1}
+              isOnlyChoice={routes.length === 1}
               onSelect={props.onRouteChange}
               quote={quote}
             />
