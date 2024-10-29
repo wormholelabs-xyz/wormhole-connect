@@ -14,6 +14,7 @@ import {
   isRefunded,
   isFailed,
   routes,
+  isCompleted,
 } from '@wormhole-foundation/sdk';
 import { getTokenDetails, getTransferDetails } from 'telemetry';
 import { makeStyles } from 'tss-react/mui';
@@ -56,6 +57,7 @@ import TxFailedIcon from 'icons/TxFailed';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { PublicKey } from '@solana/web3.js';
 import TxReadyForClaim from 'icons/TxReadyForClaim';
+import { getDisplayName, getPorticoSwapUrl } from 'utils';
 
 type StyleProps = {
   transitionDuration?: string | undefined;
@@ -171,11 +173,19 @@ const Redeem = () => {
     (receipt && isFailed(receipt)) || !!unhandledManualClaimError;
   const isTxDestQueued = receipt && isDestinationQueued(receipt);
 
+  const swapFailed =
+    receipt &&
+    isCompleted(receipt) &&
+    receipt.transferResult?.warnings?.some(
+      (w) => w.type === 'SwapFailedWarning',
+    );
+
   const {
     recipient,
     toChain,
     fromChain,
     tokenKey,
+    destTokenKey,
     receivedTokenKey,
     amount,
     receiveAmount,
@@ -368,7 +378,16 @@ const Redeem = () => {
   const statusHeader = useMemo(() => {
     let statusText = 'Transaction submitted';
     if (isTxComplete) {
-      statusText = 'Transaction complete';
+      if (swapFailed) {
+        const receivedToken = config.tokens[receivedTokenKey];
+        const displayName = getDisplayName(
+          receivedToken,
+          receivedToken.nativeChain,
+        );
+        statusText = `Received ${displayName} on ${receivedToken.nativeChain}`;
+      } else {
+        statusText = 'Transaction complete';
+      }
     } else if (isTxRefunded) {
       statusText = 'Transaction was refunded';
     } else if (isTxFailed) {
@@ -390,6 +409,7 @@ const Redeem = () => {
     isTxRefunded,
     isTxFailed,
     isTxDestQueued,
+    swapFailed,
     receiveAmount,
     receivedTokenKey,
     recipient,
@@ -522,14 +542,14 @@ const Redeem = () => {
 
   // Circular progress indicator component for ETA countdown
   const etaCircle = useMemo(() => {
-    if (isTxComplete) {
+    if (isTxComplete && !swapFailed) {
       return (
         <TxCompleteIcon
           className={classes.txStatusIcon}
           sx={{ color: theme.palette.primary.light }}
         />
       );
-    } else if (isTxRefunded || isTxDestQueued) {
+    } else if (isTxRefunded || isTxDestQueued || swapFailed) {
       return (
         <TxWarningIcon
           className={classes.txStatusIcon}
@@ -562,6 +582,7 @@ const Redeem = () => {
     isTxFailed,
     isTxDestQueued,
     isTxAttested,
+    swapFailed,
   ]);
 
   useEffect(() => {
@@ -730,6 +751,35 @@ const Redeem = () => {
 
   // Main CTA button which has separate states for automatic and manual claims
   const actionButton = useMemo(() => {
+    if (swapFailed && routeName === 'PorticoBridge') {
+      const inToken = config.tokens[receivedTokenKey];
+      const inTokenName = getDisplayName(inToken, toChain);
+
+      const outToken = config.tokens[destTokenKey];
+      const outTokenName = getDisplayName(outToken, toChain);
+
+      const url = getPorticoSwapUrl(toChain, inToken, outToken);
+      // TODO: fallback?
+      if (!url) return;
+
+      const buttonText = `Convert ${inTokenName} to ${outTokenName} on ${toChain}`;
+
+      return (
+        <>
+          <Button
+            variant="primary"
+            className={classes.actionButton}
+            //onClick={() => {
+            //  dispatch(setRoute('bridge'));
+            //}}
+          >
+            <Typography textTransform="none">{buttonText}</Typography>
+          </Button>
+          <Typography textTransform="none">{`Due to slippage, you received ${inTokenName} on ${toChain}`}</Typography>
+        </>
+      );
+    }
+
     if (isTxComplete || isTxRefunded) {
       return (
         <Button
@@ -798,6 +848,11 @@ const Redeem = () => {
     isTxRefunded,
     isTxFailed,
     isTxDestQueued,
+    swapFailed,
+    routeName,
+    receivedTokenKey,
+    destTokenKey,
+    toChain,
     isConnectedToReceivingWallet,
   ]);
 

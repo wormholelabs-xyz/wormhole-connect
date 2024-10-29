@@ -1,10 +1,11 @@
-import { isCompleted } from '@wormhole-foundation/sdk';
+import { amount, isCompleted } from '@wormhole-foundation/sdk';
 import { RouteContext } from 'contexts/RouteContext';
 import { useContext, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setRedeemTx, setTransferComplete } from 'store/redeem';
+import { setRedeemTx, setTransferComplete, setTxDetails } from 'store/redeem';
 import type { RootState } from 'store';
-import { sleep } from 'utils';
+import { getTokenDecimals, getWrappedTokenId, sleep } from 'utils';
+import config from 'config';
 
 const TRACK_TIMEOUT = 120 * 1000;
 
@@ -60,6 +61,44 @@ const useTrackTransfer = (): void => {
                 const lastTx = currentReceipt.destinationTxs?.slice(-1)[0];
                 if (lastTx) {
                   dispatch(setRedeemTx(lastTx.txid));
+                }
+
+                if (currentReceipt.transferResult && txData) {
+                  const { receivedToken } = currentReceipt.transferResult;
+                  const receivedTokenConfig =
+                    config.sdkConverter.findTokenConfigV1(
+                      receivedToken.token,
+                      config.tokensArr,
+                    );
+
+                  console.log(
+                    'Transfer result:',
+                    currentReceipt.transferResult,
+                  );
+
+                  console.log('Received token key:', receivedTokenConfig?.key);
+
+                  if (receivedTokenConfig) {
+                    const decimals = getTokenDecimals(
+                      receivedToken.token.chain,
+                      getWrappedTokenId(receivedTokenConfig),
+                    );
+
+                    const receivedAmount = amount.display({
+                      amount: receivedToken.amount.toString(),
+                      decimals,
+                    });
+
+                    console.log('Received amount:', receivedAmount);
+
+                    dispatch(
+                      setTxDetails({
+                        ...txData,
+                        receivedTokenKey: receivedTokenConfig.key,
+                        receiveAmount: receivedAmount ?? txData.receiveAmount,
+                      }),
+                    );
+                  }
                 }
               }
 

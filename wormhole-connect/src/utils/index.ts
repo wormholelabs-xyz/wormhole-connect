@@ -381,32 +381,40 @@ export const getExplorerUrl = (chain: Chain, address: string) => {
 
 export const getPorticoSwapUrl = (
   chain: Chain,
-  inputToken: string,
-  outputToken: string,
+  inToken: TokenConfig,
+  outToken: TokenConfig,
 ) => {
+  const defaultUrl = 'https://app.uniswap.org/swap';
+
   const chainContracts = contracts.portico.get(chain, 'Mainnet');
-  if (!chainContracts) return;
+  if (!chainContracts) return defaultUrl;
+
+  const inTokenId = config.sdkConverter.toTokenIdV2(inToken, chain);
+  const outTokenId = config.sdkConverter.toTokenIdV2(outToken, chain);
 
   let tokenGroup: string | undefined;
   for (const [group, tokens] of Object.entries(porticoTokens)) {
     if (
       tokens.some(
-        (token) => token.chain === chain && token.address === outputToken,
+        (token) =>
+          token.chain === chain && token.address === outTokenId.address,
       )
     ) {
       tokenGroup = group;
       break;
     }
   }
-  if (!tokenGroup) return;
+  if (!tokenGroup) return defaultUrl;
 
   const baseUrl =
     tokenGroup === 'USDT' && chainContracts.porticoPancakeSwap
       ? 'https://pancakeswap.finance/swap'
       : 'https://app.uniswap.org/swap';
 
-  return `${baseUrl}?inputCurrency=${inputToken}&outputCurrency=${
-    outputToken === 'native' ? outputToken.toUpperCase() : outputToken
+  return `${baseUrl}?inputCurrency=${inTokenId.address}&outputCurrency=${
+    outTokenId.address === 'native'
+      ? outTokenId.address.toUpperCase()
+      : outToken
   }`;
 };
 

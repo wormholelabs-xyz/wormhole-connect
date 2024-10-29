@@ -246,6 +246,7 @@ const ReviewTransaction = (props: Props) => {
       }
 
       const txTimestamp = Date.now();
+      const destTokenKey = config.tokens[destToken].key;
       const txDetails = {
         sendTx: txId,
         sender: sendingWallet.address,
@@ -259,7 +260,9 @@ const ReviewTransaction = (props: Props) => {
           sourceChain,
           getWrappedTokenId(sourceTokenConfig),
         ),
-        receivedTokenKey: config.tokens[destToken].key, // TODO: possibly wrong (e..g if portico swap fails)
+        destTokenKey,
+        // TODO: should receivedTokenKey be left undefined here?
+        receivedTokenKey: destTokenKey,
         relayerFee,
         receiveAmount: sdkAmount
           .whole(quote.destinationToken.amount)

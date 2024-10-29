@@ -43,7 +43,9 @@ export interface TransferInfo {
   tokenKey: string;
   tokenDecimals: number;
 
-  // Destination token
+  // The token we expect to receive
+  destTokenKey: string;
+  // The token we actually receive
   receivedTokenKey: string;
   receiveAmount?: string;
   relayerFee?: RelayerFee;
@@ -245,6 +247,7 @@ const parseTokenBridgeReceipt = async (
     });
     txData.tokenAddress = tokenAddress;
     txData.tokenKey = tokenV1.key;
+    txData.destTokenKey = tokenV1.key;
     txData.receivedTokenKey = tokenV1.key;
     txData.receiveAmount = txData.amount;
     if (payload.payload?.toNativeTokenAmount) {
@@ -363,6 +366,7 @@ const parseCCTPReceipt = async (
     throw new Error(`Couldn't find USDC for destination chain`);
   }
 
+  txData.destTokenKey = destinationUsdcLegacy.key;
   txData.receivedTokenKey = destinationUsdcLegacy.key;
 
   return txData as TransferInfo;
@@ -430,6 +434,7 @@ const parseNttReceipt = (
     tokenAddress: srcTokenV1.tokenId!.address.toString(),
     tokenKey: srcTokenV1.key,
     tokenDecimals: trimmedAmount.decimals,
+    destTokenKey: dstTokenV1.key,
     receivedTokenKey: dstTokenV1.key,
     receiveAmount: amt,
     relayerFee: undefined, // TODO: how to get?
