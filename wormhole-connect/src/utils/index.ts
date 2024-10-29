@@ -7,8 +7,9 @@ import config from 'config';
 import { ChainConfig, TokenConfig } from 'config/types';
 import { isGatewayChain } from './cosmos';
 import { TokenPrices } from 'store/tokenPrices';
-import { Chain, chainToPlatform } from '@wormhole-foundation/sdk';
+import { Chain, chainToPlatform, contracts } from '@wormhole-foundation/sdk';
 import { getNativeVersionOfToken } from 'store/transferInput';
+import { supportedTokens as porticoTokens } from '@wormhole-foundation/sdk-evm-portico';
 
 export const MAX_DECIMALS = 6;
 export const NORMALIZED_DECIMALS = 8;
@@ -376,6 +377,37 @@ export const getExplorerUrl = (chain: Chain, address: string) => {
   }
 
   return explorerUrl;
+};
+
+export const getPorticoSwapUrl = (
+  chain: Chain,
+  inputToken: string,
+  outputToken: string,
+) => {
+  const chainContracts = contracts.portico.get(chain, 'Mainnet');
+  if (!chainContracts) return;
+
+  let tokenGroup: string | undefined;
+  for (const [group, tokens] of Object.entries(porticoTokens)) {
+    if (
+      tokens.some(
+        (token) => token.chain === chain && token.address === outputToken,
+      )
+    ) {
+      tokenGroup = group;
+      break;
+    }
+  }
+  if (!tokenGroup) return;
+
+  const baseUrl =
+    tokenGroup === 'USDT' && chainContracts.porticoPancakeSwap
+      ? 'https://pancakeswap.finance/swap'
+      : 'https://app.uniswap.org/swap';
+
+  return `${baseUrl}?inputCurrency=${inputToken}&outputCurrency=${
+    outputToken === 'native' ? outputToken.toUpperCase() : outputToken
+  }`;
 };
 
 // Frankenstein tokens are wormhole-wrapped tokens that are not native to the chain
