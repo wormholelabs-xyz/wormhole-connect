@@ -1,4 +1,8 @@
-import { NttRoute } from '@wormhole-foundation/sdk-route-ntt';
+import {
+  MultiTokenNttRoute,
+  NttRoute,
+} from '@wormhole-foundation/sdk-route-ntt';
+import { TESTNET_TOKENS } from 'config/testnet';
 
 export const NTT_TEST_CONFIG_TESTNET: NttRoute.Config = {
   tokens: {
@@ -28,6 +32,63 @@ export const NTT_TEST_CONFIG_TESTNET: NttRoute.Config = {
     ],
   },
 };
+
+// TODO: MultiTokenNtt supports bridging arbitrary tokens, but Connect does not.
+// For now each supported token has its own entry in the config until we can
+// properly support arbitrary tokens.
+export const NTT_TEST_MULTI_TOKEN_CONFIG_TESTNET: MultiTokenNttRoute.Config = {
+  tokens: {},
+};
+
+const MONAD_WormholeTransceiver = '0xf72abb2b4c53b722643355a9816ddddcd7f215f4';
+const MONAD_GmpManager = '0x641a6608e2959c0d7fe2a5f267dfda519ed43d98';
+const MONAD_MultiTokenNtt = '0x600d3c45cd002e7359d12597bb8058a0c32a20df';
+
+const SEPOLIA_WormholeTransceiver =
+  '0x7c861c04f724217f673f2ee1e6157a95397dc14d';
+const SEPOLIA_GmpManager = '0xfa6f07b957d9528f5f66954a8d3762db64dba1e2';
+const SEPOLIA_MultiTokenNtt = '0x03d943f8e5c297029936b3507f1fc20e86e7774e';
+
+const MONAD_TOKEN_CONFIGS = [
+  ['ETHsepolia', 'WETHmonad'],
+  // ['WETHsepolia', 'WETHmonad'],
+  ['WBTCsepolia', 'WBTCmonad'],
+  ['USDCsepolia', 'USDCmonad'],
+  ['UNIsepolia', 'UNImonad'],
+];
+
+MONAD_TOKEN_CONFIGS.forEach((config) => {
+  const [sepoliaToken, monadToken] = config;
+  const key = `MONAD_BRIDGE_${sepoliaToken}`;
+
+  NTT_TEST_MULTI_TOKEN_CONFIG_TESTNET.tokens[key] = [
+    {
+      chain: 'Sepolia',
+      manager: SEPOLIA_MultiTokenNtt,
+      gmpManager: SEPOLIA_GmpManager,
+      token: TESTNET_TOKENS[sepoliaToken]!.tokenId?.address || 'native',
+      transceiver: [
+        {
+          address: SEPOLIA_WormholeTransceiver,
+          type: 'wormhole',
+        },
+      ],
+    },
+    {
+      chain: 'MonadDevnet',
+      manager: MONAD_MultiTokenNtt,
+      gmpManager: MONAD_GmpManager,
+      // token: 'native', // HACK
+      token: TESTNET_TOKENS[monadToken]!.tokenId?.address! || 'native',
+      transceiver: [
+        {
+          address: MONAD_WormholeTransceiver,
+          type: 'wormhole',
+        },
+      ],
+    },
+  ];
+});
 
 export const NTT_TEST_CONFIG_MAINNET: NttRoute.Config = {
   tokens: {

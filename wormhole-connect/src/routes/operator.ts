@@ -11,6 +11,8 @@ import {
 import SDKv2Route from './sdkv2';
 
 import {
+  multiTokenNttAutomaticRoute,
+  MultiTokenNttRoute,
   nttAutomaticRoute,
   nttManualRoute,
   NttRoute,
@@ -357,4 +359,10 @@ class QuoteCacheEntry {
 // ]
 export const nttRoutes = (nc: NttRoute.Config): routes.RouteConstructor[] => {
   return [nttManualRoute(nc), nttAutomaticRoute(nc)];
+};
+
+export const multiTokenNttRoutes = (
+  nc: MultiTokenNttRoute.Config,
+): routes.RouteConstructor[] => {
+  return [multiTokenNttAutomaticRoute(nc)];
 };

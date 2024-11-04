@@ -103,6 +103,13 @@ export const RoutesConfig: Record<string, RouteData> = {
     icon: XLabsIcon,
     pendingMessage: 'Waiting for Wormhole network consensus . . .',
   },
+  AutomaticMultiTokenNtt: {
+    name: 'AutomaticMultiTokenNtt',
+    displayName: 'Native Token Transfer',
+    link: 'https://xlabs.xyz',
+    icon: XLabsIcon,
+    pendingMessage: 'Waiting for Wormhole network consensus . . .',
+  },
   MayanSwap: {
     name: 'MayanSwap',
     displayName: 'Mayan Swap',

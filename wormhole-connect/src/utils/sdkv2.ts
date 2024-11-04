@@ -17,7 +17,10 @@ import {
   CircleTransfer,
 } from '@wormhole-foundation/sdk';
 import config from 'config';
-import { NttRoute } from '@wormhole-foundation/sdk-route-ntt';
+import {
+  MultiTokenNttRoute,
+  NttRoute,
+} from '@wormhole-foundation/sdk-route-ntt';
 import { Connection } from '@solana/web3.js';
 import { PublicKey } from '@solana/web3.js';
 import * as splToken from '@solana/spl-token';
@@ -183,6 +186,12 @@ export async function parseReceipt(
       return parseNttReceipt(
         receipt as ReceiptWithAttestation<NttRoute.AutomaticAttestationReceipt> & {
           params: NttRoute.ValidatedParams;
+        },
+      );
+    case 'AutomaticMultiTokenNtt':
+      return parseMultiTokenNttReceipt(
+        receipt as ReceiptWithAttestation<MultiTokenNttRoute.AutomaticAttestationReceipt> & {
+          params: MultiTokenNttRoute.ValidatedParams;
         },
       );
     default:
@@ -418,6 +427,71 @@ const parseNttReceipt = (
     sendTx,
     sender: payload.nttManagerPayload.sender.toNative(receipt.from).toString(),
     recipient: payload.nttManagerPayload.payload.recipientAddress
+      .toNative(receipt.to)
+      .toString(),
+    amount: amt,
+    tokenAddress: srcTokenV1.tokenId!.address.toString(),
+    tokenKey: srcTokenV1.key,
+    tokenDecimals: trimmedAmount.decimals,
+    receivedTokenKey: dstTokenV1.key,
+    receiveAmount: amt,
+    relayerFee: undefined, // TODO: how to get?
+  };
+};
+
+const parseMultiTokenNttReceipt = (
+  receipt: ReceiptWithAttestation<MultiTokenNttRoute.AutomaticAttestationReceipt> & {
+    params: MultiTokenNttRoute.ValidatedParams;
+  },
+): TransferInfo => {
+  let sendTx = '';
+  if ('originTxs' in receipt && receipt.originTxs.length > 0) {
+    sendTx = receipt.originTxs[receipt.originTxs.length - 1].txid;
+  } else {
+    throw new Error("Can't find txid in receipt");
+  }
+
+  const srcTokenIdV2 = Wormhole.tokenId(
+    receipt.from,
+    receipt.params.normalizedParams.sourceContracts.token,
+  );
+  const srcTokenV1 = config.sdkConverter.findTokenConfigV1(
+    srcTokenIdV2,
+    config.tokensArr,
+  );
+  if (!srcTokenV1) {
+    // This is a token Connect is not aware of
+    throw new Error('Unknown src token');
+  }
+
+  const dstTokenIdV2 = Wormhole.tokenId(
+    receipt.to,
+    receipt.params.normalizedParams.destinationContracts.token,
+  );
+  const dstTokenV1 = config.sdkConverter.findTokenConfigV1(
+    dstTokenIdV2,
+    config.tokensArr,
+  );
+  if (!dstTokenV1) {
+    // This is a token Connect is not aware of
+    throw new Error('Unknown dst token');
+  }
+
+  const { attestation } = receipt.attestation;
+  const { nttManagerPayload } = attestation.payload.payload;
+  const trimmedAmount = nttManagerPayload.payload.data.trimmedAmount;
+  const amt = amount.display({
+    amount: trimmedAmount.amount.toString(),
+    decimals: trimmedAmount.decimals,
+  });
+  return {
+    toChain: receipt.to,
+    fromChain: receipt.from,
+    sendTx,
+    sender: nttManagerPayload.payload.data.sender
+      .toNative(receipt.from)
+      .toString(),
+    recipient: nttManagerPayload.payload.data.to
       .toNative(receipt.to)
       .toString(),
     amount: amt,

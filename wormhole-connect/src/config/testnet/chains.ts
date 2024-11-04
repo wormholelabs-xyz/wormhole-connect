@@ -245,4 +245,14 @@ export const TESTNET_CHAINS: ChainsConfig = {
     icon: Icon.MANTLE,
     maxBlockSearch: 2000,
   },
+  MonadDevnet: {
+    ...chains.MonadDevnet!,
+    displayName: 'Monad Devnet',
+    explorerUrl: 'https://brightstar-884.devnet1.monad.xyz/',
+    explorerName: 'Monad Explorer',
+    gasToken: 'MON',
+    chainId: 41454,
+    icon: Icon.MONAD,
+    maxBlockSearch: 2000,
+  },
 };

@@ -29,7 +29,8 @@ import { TokenConfig } from 'config/types';
 import FastestRoute from 'icons/FastestRoute';
 import CheapestRoute from 'icons/CheapestRoute';
 
-const HIGH_FEE_THRESHOLD = 20; // dollhairs
+// TODO: set high for testing
+const HIGH_FEE_THRESHOLD = 10000000; // dollhairs
 
 const useStyles = makeStyles()((theme: any) => ({
   container: {

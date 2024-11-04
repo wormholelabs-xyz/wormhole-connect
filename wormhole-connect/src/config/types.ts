@@ -63,6 +63,7 @@ export enum Icon {
   'BLAST',
   'XLAYER',
   'MANTLE',
+  'MONAD',
 }
 
 // Used in bridging components

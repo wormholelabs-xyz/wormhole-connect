@@ -226,6 +226,13 @@ export async function newWormholeContextV2(): Promise<WormholeV2<Network>> {
     }
 
     v2Config.chains![chain] = { rpc, tokenMap };
+
+    // TODO: we have to specify the wrapped native token for now since
+    // if we don't, then the SDK will try to fetch the wrapped token
+    // from the token bridge, but there is no token bridge on monad devnet...
+    if (chain === 'MonadDevnet') {
+      v2Config.chains![chain].wrappedNative = tokenMap['WMON'];
+    }
   }
 
   return await getWormholeV2(

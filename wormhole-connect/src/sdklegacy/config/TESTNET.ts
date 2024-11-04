@@ -104,6 +104,12 @@ const TESTNET: { [chain in Chain]?: ChainConfig } = {
     context: Context.ETH,
     finalityThreshold: 0,
   },
+  MonadDevnet: {
+    key: 'MonadDevnet',
+    id: 10008,
+    context: Context.ETH,
+    finalityThreshold: 0,
+  },
 } as const;
 
 /**
@@ -136,6 +142,7 @@ const TESTNET_CONFIG: WormholeConfig = {
     Blast: 'https://rpc.ankr.com/blast_testnet_sepolia',
     Xlayer: 'https://testrpc.xlayer.tech',
     Mantle: 'https://rpc.sepolia.mantle.xyz',
+    MonadDevnet: '', // TODO: add
   },
   rest: {
     Sei: 'https://rest.atlantic-2.seinetwork.io',

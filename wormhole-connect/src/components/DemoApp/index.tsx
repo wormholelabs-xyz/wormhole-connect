@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import WormholeConnect from '../../WormholeConnect';
 import { WormholeConnectConfig } from 'config/types';
-import { compressToBase64, decompressFromBase64 } from 'lz-string';
+import { compressToBase64 } from 'lz-string';
 
 /*
  *
@@ -37,8 +37,16 @@ import {
   MayanRouteMCTP,
   MayanRouteSWIFT,
 } from '@mayanfinance/wormhole-sdk-route';
-import { NTT_TEST_CONFIG_TESTNET, NTT_TEST_CONFIG_MAINNET } from './consts';
-import { DEFAULT_ROUTES, nttRoutes } from 'routes/operator';
+import {
+  NTT_TEST_CONFIG_TESTNET,
+  NTT_TEST_CONFIG_MAINNET,
+  NTT_TEST_MULTI_TOKEN_CONFIG_TESTNET,
+} from './consts';
+import {
+  DEFAULT_ROUTES,
+  multiTokenNttRoutes,
+  nttRoutes,
+} from 'routes/operator';
 
 const MAX_URL_SIZE = 30_000; // 30kb (HTTP header limit is set to 32kb)
 
@@ -73,6 +81,9 @@ const parseConfig = (config: string): WormholeConnectConfig => {
       window.testNttRoutesTestnet = () => nttRoutes(NTT_TEST_CONFIG_TESTNET);
       /* @ts-ignore */
       window.testNttRoutesMainnet = () => nttRoutes(NTT_TEST_CONFIG_MAINNET);
+      /* @ts-ignore */
+      window.testMultiTokenNttRoutesTestnet = () =>
+        multiTokenNttRoutes(NTT_TEST_MULTI_TOKEN_CONFIG_TESTNET);
 
       return eval(
         `(function() { return ${config} })()`,
@@ -86,17 +97,30 @@ const parseConfig = (config: string): WormholeConnectConfig => {
 };
 
 const loadInitialConfig = (): string => {
-  const params = new URLSearchParams(window.location.search);
-  const configQuery = params.get('config');
-  const configCached = localStorage.getItem(LOCAL_STORAGE_KEY);
+  //const params = new URLSearchParams(window.location.search);
+  //const configQuery = params.get('config');
+  //const configCached = localStorage.getItem(LOCAL_STORAGE_KEY);
 
-  if (configQuery) {
-    return decompressFromBase64(configQuery);
-  } else if (configCached) {
-    return configCached;
-  } else {
-    return '';
-  }
+  //if (configQuery) {
+  //  return decompressFromBase64(configQuery);
+  //} else if (configCached) {
+  //  return configCached;
+  //} else {
+  //  return '';
+  //}
+  return `{
+    network: 'Testnet',
+    chains: ['Sepolia', 'MonadDevnet'],
+    routes: [...multiTokenNttRoutes(NTT_TEST_MULTI_TOKEN_CONFIG_TESTNET)],
+    ui: {
+      defaultInputs: {
+        fromChain: 'Sepolia',
+        toChain: 'MonadDevnet',
+        tokenKey: 'ETHsepolia',
+        toTokenKey: 'WETHmonad'
+      },
+    },
+  }`;
 };
 
 const setUrlQueryParam = (configInput: string) => {
@@ -115,7 +139,7 @@ const setUrlQueryParam = (configInput: string) => {
 const LOCAL_STORAGE_KEY = 'wormhole-connect:demo:custom-config';
 
 function DemoApp() {
-  const [customConfig, setCustomConfig] = useState<WormholeConnectConfig>();
+  const [customConfig, setCustomConfig] = useState<WormholeConnectConfig>({});
   const [customConfigOpen, setCustomConfigOpen] = useState(false);
   const [customConfigInput, setCustomConfigInput] = useState(
     loadInitialConfig(),
@@ -238,6 +262,10 @@ function DemoApp() {
               <li>
                 <pre>testNttRoutesTestnet</pre>
                 <i>{'(NttRoute.Config) -> RouteConstructor[])'}</i>
+              </li>
+              <li>
+                <pre>testMultiTokenNttRoutesTestnet</pre>
+                <i>{'(MultiTokenNttRoute.Config) -> RouteConstructor[])'}</i>
               </li>
             </ul>
           </div>

@@ -100,6 +100,12 @@ const iconMap: { [key in Icon]: React.JSX.Element } = {
       src={chainToIcon('Mantle')}
     />
   ),
+  [Icon.MONAD]: (
+    <img
+      style={{ maxHeight: '100%', maxWidth: '100%' }}
+      src={chainToIcon('MonadDevnet')}
+    />
+  ),
 };
 
 function isBuiltinIcon(icon?: Icon | string): icon is Icon {
