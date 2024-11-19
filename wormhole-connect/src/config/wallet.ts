@@ -10,26 +10,26 @@ export enum WalletSide {
   RECEIVING = 'receiving',
 }
 
-export interface WalletProviderRequest {
-  network: Network;
-  chain: Chain;
+export interface WalletProviderRequest<N extends Network, C extends Chain> {
+  network: N;
+  chain: C;
   platform: Platform;
 
   side: WalletSide;
 }
 
-export interface WalletProvider {
+export interface WalletProvider<N extends Network, C extends Chain> {
   isConnected(): Promise<boolean>;
 
   getAddress(): Promise<string | undefined>;
 
-  signTransaction(): Promise<any>;
+  signTransaction(): Promise<UnsignedTransaction<N, C>>;
 
   promptConnect(): void;
 
   promptDisconnect(): void;
 }
 
-export type WalletProviderHandler = (
-  info: WalletProviderRequest,
-) => Promise<WalletProvider>;
+export type WalletProviderHandler<N extends Network, C extends Chain> = (
+  info: WalletProviderRequest<N, C>,
+) => Promise<WalletProvider<N, C>>;
