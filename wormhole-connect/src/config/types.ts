@@ -28,6 +28,8 @@ import RouteOperator from 'routes/operator';
 import { UiConfig } from './ui';
 import { TransferInfo } from 'utils/sdkv2';
 
+import { WalletProviderHandler } from './wallet';
+
 export enum Icon {
   'AVAX' = 1,
   'BNB',
@@ -152,6 +154,8 @@ export interface InternalConfig<N extends Network> {
   triggerEvent: TriggerEventHandler;
   validateTransfer?: ValidateTransferHandler;
   isRouteSupportedHandler?: IsRouteSupportedHandler;
+
+  getWalletProvider?: WalletProviderHandler;
 
   // UI configuration
   ui: UiConfig;
