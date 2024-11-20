@@ -1,8 +1,8 @@
 import {
   Network,
   Chain,
-  Platform,
   UnsignedTransaction,
+  ChainToPlatform,
 } from '@wormhole-foundation/sdk';
 
 export enum WalletSide {
@@ -13,7 +13,7 @@ export enum WalletSide {
 export interface WalletProviderRequest<N extends Network, C extends Chain> {
   network: N;
   chain: C;
-  platform: Platform;
+  platform: ChainToPlatform<C>;
 
   side: WalletSide;
 }
@@ -23,7 +23,7 @@ export interface WalletProvider<N extends Network, C extends Chain> {
 
   getAddress(): Promise<string | undefined>;
 
-  signTransaction(): Promise<UnsignedTransaction<N, C>>;
+  signTransaction(tx: UnsignedTransaction<N, C>): Promise<string>;
 
   promptConnect(): void;
 

@@ -33,6 +33,7 @@ import {
   AptosChains,
 } from '@wormhole-foundation/sdk-aptos';
 import { SolanaUnsignedTransaction } from '@wormhole-foundation/sdk-solana';
+import { WalletProviderHandler, WalletProviderRequest } from 'config/wallet';
 
 export enum TransferWallet {
   SENDING = 'sending',
@@ -308,4 +309,28 @@ export const getWalletOptions = async (
     return Object.values(mapWallets(aptosOptions, Context.APTOS));
   }
   return [];
+};
+
+export const defaultWalletProvder: WalletProviderHandler<Network, Chain> = (
+  request: WalletProviderRequest<Network, Chain>,
+) => {
+  return {
+    isConnected: async (): Promise<boolean> => {
+      return false;
+    },
+
+    getAddress: async (): Promise<string> => {
+      return '';
+    },
+
+    signTransaction: async (
+      tx: UnsignedTransaction<Network, Chain>,
+    ): Promise<string> => {
+      return '';
+    },
+
+    promptConnect: () => {},
+
+    promptDisconnect: () => {},
+  };
 };
