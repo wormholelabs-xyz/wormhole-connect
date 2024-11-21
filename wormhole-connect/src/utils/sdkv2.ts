@@ -480,10 +480,10 @@ const parseMultiTokenNttReceipt = (
   const { attestation } = receipt.attestation;
   const { nttManagerPayload } = attestation.payload.payload;
   const trimmedAmount = nttManagerPayload.payload.data.trimmedAmount;
-  const amt = amount.display({
-    amount: trimmedAmount.amount.toString(),
-    decimals: trimmedAmount.decimals,
-  });
+  const amt = amount.fromBaseUnits(
+    trimmedAmount.amount,
+    trimmedAmount.decimals,
+  );
   return {
     toChain: receipt.to,
     fromChain: receipt.from,
