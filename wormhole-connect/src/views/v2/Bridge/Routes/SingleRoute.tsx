@@ -30,9 +30,8 @@ import FastestRoute from 'icons/FastestRoute';
 import CheapestRoute from 'icons/CheapestRoute';
 import { useGetTokens } from 'hooks/useGetTokens';
 import { useTokens } from 'contexts/TokensContext';
-import { Token } from 'config/tokens';
 
-const HIGH_FEE_THRESHOLD = 20; // dollhairs
+const HIGH_FEE_THRESHOLD = 100; // dollhairs
 
 const useStyles = makeStyles()((theme: any) => ({
   container: {
@@ -113,46 +112,50 @@ const SingleRoute = (props: Props) => {
 
   const { sourceToken, destToken } = useGetTokens();
 
-  const [feePrice, isHighFee, feeToken]: [
-    number | undefined,
-    boolean,
-    Token | undefined,
-  ] = useMemo(() => {
-    if (!quote?.relayFee) {
-      return [undefined, false, undefined];
-    }
+  const { usdAmountDeltaPercentage, usdAmountDelta, isHighDelta } =
+    useMemo(() => {
+      if (quote) {
+        const usdAmountIn = calculateUSDPriceRaw(
+          getTokenPrice,
+          quote.sourceToken.amount,
+          sourceToken,
+        );
+        const usdAmountOut = calculateUSDPriceRaw(
+          getTokenPrice,
+          quote?.destinationToken.amount,
+          destToken,
+        );
+        if (usdAmountIn && usdAmountOut) {
+          const usdAmountDelta = usdAmountIn - usdAmountOut;
+          return {
+            usdAmountIn,
+            usdAmountOut,
+            usdAmountDelta,
+            usdAmountDeltaPercentage: usdAmountDelta / usdAmountIn,
+            isHighDelta: usdAmountDelta > HIGH_FEE_THRESHOLD,
+          };
+        }
+      }
 
-    const relayFee = amount.whole(quote.relayFee.amount);
-    const feeToken = config.tokens.get(quote.relayFee.token);
-    const feePrice = calculateUSDPriceRaw(getTokenPrice, relayFee, feeToken);
-
-    if (feePrice === undefined) {
-      return [undefined, false, undefined];
-    }
-
-    return [feePrice, feePrice > HIGH_FEE_THRESHOLD, feeToken];
-  }, [quote?.relayFee]);
+      return {
+        usdAmountIn: 0,
+        usdAmountOut: 0,
+        usdAmountDelta: 0,
+        usdAmountDeltaPercentage: 0,
+        isHighDelta: false,
+      };
+    }, [quote?.relayFee]);
 
   const relayerFee = useMemo(() => {
     if (!routeConfig.AUTOMATIC_DEPOSIT) {
       return <>You pay gas on {destChain}</>;
     }
 
-    if (!quote || !feePrice || !feeToken) {
+    if (!quote) {
       return <></>;
     }
 
-    const feePriceFormatted = getUSDFormat(feePrice);
-
-    let feeValue = `${amount.display(
-      amount.truncate(quote!.relayFee!.amount, 6),
-    )} ${feeToken.display} (${feePriceFormatted})`;
-
-    // Wesley made me do it
-    // Them PMs :-/
-    if (props.route.name.startsWith('MayanSwap')) {
-      feeValue = feePriceFormatted;
-    }
+    const usdAmountDeltaFormatted = getUSDFormat(usdAmountDelta);
 
     return (
       <Stack direction="row" justifyContent="space-between">
@@ -162,7 +165,7 @@ const SingleRoute = (props: Props) => {
           fontSize="14px"
           lineHeight="14px"
         >
-          Network cost
+          Approximate cost
         </Typography>
         <Typography
           color={theme.palette.text.primary}
@@ -170,14 +173,14 @@ const SingleRoute = (props: Props) => {
           fontSize="14px"
           lineHeight="14px"
         >
-          {feeValue}
+          {usdAmountDeltaFormatted} (
+          {(usdAmountDeltaPercentage * 100).toFixed(2)}%)
         </Typography>
       </Stack>
     );
   }, [
     destChain,
-    feePrice,
-    feeToken,
+    usdAmountDelta,
     props.route.name,
     quote,
     routeConfig.AUTOMATIC_DEPOSIT,
@@ -384,7 +387,7 @@ const SingleRoute = (props: Props) => {
       }
     }
 
-    if (isHighFee) {
+    if (isHighDelta) {
       messages.push(
         <div key="HighFee">
           {messageDivider}
@@ -418,7 +421,7 @@ const SingleRoute = (props: Props) => {
     return messages;
   }, [
     isManual,
-    isHighFee,
+    isHighDelta,
     messageDivider,
     classes.warningIcon,
     classes.messageContainer,
@@ -477,15 +480,11 @@ const SingleRoute = (props: Props) => {
       return null;
     }
 
-    const color = isHighFee
-      ? theme.palette.warning.main
-      : theme.palette.text.primary;
-
     return (
       <Typography
         fontSize="18px"
         lineHeight="18px"
-        color={color}
+        color={theme.palette.text.primary}
         component="div"
         marginBottom="6px"
       >
@@ -497,7 +496,6 @@ const SingleRoute = (props: Props) => {
     receiveAmount,
     receiveAmountTrunc,
     destToken,
-    isHighFee,
     theme.palette.warning.main,
     theme.palette.text.primary,
   ]);

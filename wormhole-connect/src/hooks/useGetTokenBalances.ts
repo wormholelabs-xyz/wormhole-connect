@@ -104,8 +104,9 @@ const useGetTokenBalances = (
             const token = config.tokens.get(chain, tokenAddress);
 
             if (token) {
-              const bus = result[tokenAddress];
-              const balance = amount.fromBaseUnits(bus ?? 0n, token.decimals);
+              //const bus = result[tokenAddress];
+              //const balance = amount.fromBaseUnits(bus ?? 0n, token.decimals);
+              const balance = amount.parse(1_000_000, token.decimals);
 
               updatedBalances[token.key] = {
                 balance,
