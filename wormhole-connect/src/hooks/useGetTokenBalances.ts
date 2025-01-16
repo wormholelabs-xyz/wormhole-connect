@@ -86,6 +86,7 @@ const useGetTokenBalances = (
           }
 
           if (tokenAddresses.length === 0) {
+            setIsFetching(false);
             return;
           }
 

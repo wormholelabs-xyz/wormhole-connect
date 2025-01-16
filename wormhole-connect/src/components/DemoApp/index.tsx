@@ -39,7 +39,7 @@ import {
   MayanRouteSHUTTLE,
 } from '@mayanfinance/wormhole-sdk-route';
 import { NTT_TEST_CONFIG_TESTNET, NTT_TEST_CONFIG_MAINNET } from './consts';
-import { DEFAULT_ROUTES, nttRoutes } from 'routes/operator';
+import { DEFAULT_ROUTES, nttRoutes, MonadBridgeRoute } from 'routes/operator';
 
 const MAX_URL_SIZE = 30_000; // 30kb (HTTP header limit is set to 32kb)
 
@@ -76,6 +76,8 @@ const parseConfig = (config: string): WormholeConnectConfig => {
       window.testNttRoutesTestnet = () => nttRoutes(NTT_TEST_CONFIG_TESTNET);
       /* @ts-ignore */
       window.testNttRoutesMainnet = () => nttRoutes(NTT_TEST_CONFIG_MAINNET);
+      /* @ts-ignore */
+      window.MonadBridgeRoute = () => MonadBridgeRoute;
 
       return eval(
         `(function() { return ${config} })()`,
@@ -245,6 +247,10 @@ function DemoApp() {
               <li>
                 <pre>testNttRoutesTestnet</pre>
                 <i>{'(NttRoute.Config) -> RouteConstructor[])'}</i>
+              </li>
+              <li>
+                <pre>MonadBridgeRoute</pre>
+                <i>{'RouteConstructor'}</i>
               </li>
             </ul>
           </div>

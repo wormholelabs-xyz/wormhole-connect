@@ -1,5 +1,5 @@
 import config from 'config';
-import { parseTokenKey, Token, tokenKey } from 'config/tokens';
+import { Token, TokenMapping } from 'config/tokens';
 
 import {
   Chain,
@@ -7,11 +7,14 @@ import {
   TransactionId,
   amount as sdkAmount,
   TokenId,
+  Network,
 } from '@wormhole-foundation/sdk';
 
 import SDKv2Route from './sdkv2';
 
 import {
+  MultiTokenNttAutomaticRoute,
+  MultiTokenNttRoute,
   nttAutomaticRoute,
   nttManualRoute,
   NttRoute,
@@ -20,7 +23,6 @@ import {
 import '@wormhole-foundation/sdk-definitions-ntt';
 import '@wormhole-foundation/sdk-evm-ntt';
 import '@wormhole-foundation/sdk-solana-ntt';
-import { maybeLogSdkError } from 'utils/errors';
 
 export interface TxInfo {
   route: string;
@@ -155,35 +157,19 @@ export default class RouteOperator {
     return Array.from(supported);
   }
 
-  async allSupportedSourceTokens(sourceChain?: Chain): Promise<Token[]> {
-    const supported: { [key: string]: Token } = {};
-    await this.forEach(async (_name, route) => {
-      try {
-        const sourceTokens = await route.supportedSourceTokens(sourceChain);
-
-        for (const token of sourceTokens) {
-          supported[token.key] = token;
-        }
-      } catch (e) {
-        maybeLogSdkError(e);
-      }
-    });
-    return Object.values(supported);
-  }
-
   async allSupportedDestTokens(
     sourceToken: Token | undefined,
     sourceChain: Chain,
     destChain: Chain,
   ): Promise<TokenId[]> {
-    const supported: Set<string> = new Set();
+    const supported: TokenMapping<TokenId> = new TokenMapping();
 
     await this.forEach(async (name, route) => {
       try {
         // TODO remove once the SDK has a special return value that represents infinite supported tokens
         if (name.includes('Mayan')) {
           config.tokens.getAllForChain(destChain).map((t) => {
-            supported.add(t.key);
+            supported.add(t.tokenId, t.tokenId);
           });
         } else {
           const destTokenIds = await route.supportedDestTokens(
@@ -193,7 +179,8 @@ export default class RouteOperator {
           );
 
           for (const token of destTokenIds) {
-            supported.add(tokenKey(token));
+            // supported.add(tokenKey(token));
+            supported.add(token, token);
           }
         }
       } catch (e) {
@@ -201,7 +188,7 @@ export default class RouteOperator {
       }
     });
 
-    return Array.from(supported).map(parseTokenKey);
+    return supported.getAll();
   }
 
   async getQuotes(
@@ -363,3 +350,34 @@ export const nttRoutes = (nc: NttRoute.Config): routes.RouteConstructor[] => {
     nttAutomaticRoute(nc) as routes.RouteConstructor,
   ];
 };
+
+// TODO: this probably belongs in its own package, but for now we'll keep it here
+export class MonadBridgeRoute<N extends Network>
+  extends MultiTokenNttAutomaticRoute<N>
+  implements routes.StaticRouteMethods<typeof MonadBridgeRoute>
+{
+  static meta = {
+    name: 'MonadBridge',
+  };
+
+  static override config: MultiTokenNttRoute.Config = {
+    contracts: [
+      {
+        chain: 'Sepolia',
+        manager: '0x6c5aAE4622B835058A41879bA5e128019B9047d6',
+        gmpManager: '0xDaeE3A6B4196E3e46015b364F1DAe54CEAE74A91',
+        transceiver: {
+          wormhole: '0x3D11D1c1a8763c8508e0F3d4F6ec08D0D6cC293e',
+        },
+      },
+      {
+        chain: 'Monad',
+        manager: '0x600D3C45Cd002E7359D12597Bb8058a0C32A20Df',
+        gmpManager: '0x641a6608e2959c0D7Fe2a5F267DFDA519ED43d98',
+        transceiver: {
+          wormhole: '0xf72AbB2B4C53B722643355A9816Ddddcd7F215F4',
+        },
+      },
+    ],
+  };
+}

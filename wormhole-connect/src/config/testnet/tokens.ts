@@ -185,6 +185,34 @@ export const TESTNET_TOKENS: TokenConfig[] = [
     },
   },
   {
+    symbol: 'USDT',
+    icon: TokenIcon.USDT,
+    decimals: 6,
+    tokenId: {
+      chain: 'Sepolia',
+      address: '0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0',
+    },
+  },
+  {
+    symbol: 'WBTC',
+    icon: TokenIcon.WBTC,
+    decimals: 8,
+    tokenId: {
+      chain: 'Sepolia',
+      // address: '0xBe9566f1bc9a6a18ad1ed5620Ccb76ff639534d5',
+      address: '0x52eea312378ef46140ebe67de8a143ba2304fd7c',
+    },
+  },
+  {
+    symbol: 'UNI',
+    icon: 'https://assets.coingecko.com/coins/images/12504/standard/uniswap-logo.png',
+    decimals: 18,
+    tokenId: {
+      chain: 'Sepolia',
+      address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+    },
+  },
+  {
     symbol: 'ETH',
     icon: TokenIcon.ETH,
     decimals: 18,
@@ -333,5 +361,20 @@ export const TESTNET_TOKENS: TokenConfig[] = [
     },
     decimals: 6,
     icon: TokenIcon.USDC,
+  },
+  {
+    symbol: 'MON',
+    icon: TokenIcon.MONAD,
+    decimals: 18,
+    tokenId: { chain: 'Monad', address: 'native' },
+  },
+  {
+    symbol: 'WMON',
+    icon: TokenIcon.MONAD,
+    decimals: 18,
+    tokenId: {
+      chain: 'Monad',
+      address: '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701', // TODO: is this canonical?
+    },
   },
 ];

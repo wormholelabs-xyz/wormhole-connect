@@ -188,6 +188,17 @@ export const TESTNET_CHAINS: ChainsConfig = {
     sdkName: 'Mantle',
     wrappedGasToken: '0xa4c4cb2A072eE99f77212Fa18c2B7Ca26DA23905',
   },
+  Monad: {
+    ...chains.Monad!,
+    displayName: 'Monad',
+    explorerUrl: 'https://explorer.monad-testnet.category.xyz/',
+    explorerName: 'Monad Explorer',
+    chainId: 10143,
+    icon: 'Monad',
+    symbol: 'MON',
+    sdkName: 'Monad',
+    wrappedGasToken: '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701',
+  },
   Worldchain: {
     ...chains.Worldchain!,
     displayName: 'World Chain',
