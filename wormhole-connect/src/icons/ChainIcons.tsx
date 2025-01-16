@@ -27,6 +27,7 @@ import WORLD from './Chains/WORLD';
 import UNI from './Chains/UNI';
 import BERA from './Chains/BERA';
 import MEZO from './Chains/MEZO';
+import MONAD from './Chains/MONAD';
 
 const useStyles = makeStyles<{ size: number }>()((theme: any, { size }) => ({
   container: {
@@ -74,6 +75,7 @@ const iconMap: { [key in Chain]?: React.JSX.Element } = {
   Unichain: UNI(),
   Berachain: BERA(),
   Mezo: MEZO(),
+  Monad: MONAD(),
 };
 
 function isBuiltinChainIcon(icon?: Chain | string): icon is Chain {
