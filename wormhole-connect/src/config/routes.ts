@@ -135,4 +135,11 @@ export const RoutesConfig: Record<string, RouteData> = {
     icon: XLabsIcon,
     pendingMessage: 'Waiting for Wormhole network consensus . . .',
   },
+  MonadBridge: {
+    name: 'MonadBridge',
+    displayName: 'Monad Bridge',
+    link: 'https://xlabs.xyz',
+    icon: XLabsIcon,
+    pendingMessage: 'Waiting for Wormhole network consensus . . .',
+  },
 };

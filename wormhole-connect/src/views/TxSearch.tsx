@@ -27,6 +27,7 @@ import {
   AttestedTransferReceipt,
   Chain,
 } from '@wormhole-foundation/sdk';
+import { useTokens } from 'contexts/TokensContext';
 
 const useStyles = makeStyles()((theme) => ({
   container: {
@@ -73,6 +74,7 @@ function TxSearch() {
   const [loading, setLoading] = useState(false);
 
   const routeContext = useContext(RouteContext);
+  const { getOrFetchToken } = useTokens();
 
   function setChain(e: any) {
     setState((prevState) => ({ ...prevState, chain: e.target.value }));
@@ -123,6 +125,7 @@ function TxSearch() {
     const txDetails = await parseReceipt(
       route,
       receipt as AttestedTransferReceipt<any>,
+      getOrFetchToken,
     );
 
     if (txDetails) {

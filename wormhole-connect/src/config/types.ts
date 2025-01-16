@@ -64,6 +64,7 @@ export enum TokenIcon {
   'XLAYER',
   'MANTLE',
   'WORLDCHAIN',
+  'MONAD',
 }
 
 // Used in bridging components

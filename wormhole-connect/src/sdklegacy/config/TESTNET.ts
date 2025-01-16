@@ -110,6 +110,12 @@ const TESTNET: { [chain in Chain]?: ChainConfig } = {
     context: Context.ETH,
     finalityThreshold: 0,
   },
+  Monad: {
+    key: 'Monad',
+    id: 48,
+    context: Context.ETH,
+    finalityThreshold: 0,
+  },
 } as const;
 
 /**
@@ -143,6 +149,7 @@ const TESTNET_CONFIG: WormholeConfig = {
     Xlayer: 'https://testrpc.xlayer.tech',
     Mantle: 'https://rpc.sepolia.mantle.xyz',
     Worldchain: 'https://worldchain-sepolia.g.alchemy.com/public',
+    Monad: 'https://rpc.ankr.com/monad', // TODO: add default
   },
   rest: {
     Sei: 'https://rest.atlantic-2.seinetwork.io',
