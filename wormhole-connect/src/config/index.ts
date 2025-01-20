@@ -161,6 +161,9 @@ export function buildConfig(
 
     // Guardian Set
     guardianSet: networkData.guardianSet,
+
+    // Transaction settings
+    transactionSettings: customConfig?.transactionSettings || {},
   };
 }
 

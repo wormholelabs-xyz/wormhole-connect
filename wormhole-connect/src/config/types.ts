@@ -17,6 +17,8 @@ import {
   routes,
 } from '@wormhole-foundation/sdk';
 
+import { PriorityFeeOptions } from '@wormhole-foundation/sdk-solana';
+
 import {
   TransferDetails,
   TriggerEventHandler,
@@ -115,6 +117,9 @@ export interface WormholeConnectConfig {
 
   // UI details
   ui?: UiConfig;
+
+  // Transaction settings (e.g. priority / gas fees)
+  transactionSettings?: TransactionSettings;
 }
 
 // This is the exported config value used throughout the code base
@@ -158,6 +163,8 @@ export interface InternalConfig<N extends Network> {
   ui: UiConfig;
 
   guardianSet: GuardianSetData;
+
+  transactionSettings: TransactionSettings;
 }
 
 export type TokenConfig = {
@@ -311,4 +318,12 @@ export interface TransactionLocal {
   txHash: string;
   txDetails: TransferInfo;
   isReadyToClaim?: boolean;
+}
+
+export interface TransactionSettings {
+  Solana?: {
+    priorityFee?: PriorityFeeOptions & {
+      feeEstimator?: 'triton';
+    };
+  };
 }
