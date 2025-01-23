@@ -117,7 +117,6 @@ const GasSlider = (props: {
     const tokenAmount = amount.display(
       amount.truncate(props.destinationGasDrop, 6),
     );
-    console.log(tokenAmount);
 
     const tokenPrice = calculateUSDPrice(
       props.destinationGasDrop,
