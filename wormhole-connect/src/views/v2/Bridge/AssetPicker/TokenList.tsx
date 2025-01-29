@@ -147,7 +147,6 @@ const TokenList = (props: Props) => {
       nativeToken.address.toString() !==
         props.selectedToken?.address.toString() &&
       !tokenSet.has(nativeToken.address.toString()) &&
-      props.selectedNonSDKChain !== 'Hyperliquid' &&
       props.selectedChainConfig.displayName !== 'Hyperliquid'
     ) {
       tokenSet.add(nativeToken.address.toString());
@@ -251,10 +250,10 @@ const TokenList = (props: Props) => {
   }, [
     props.selectedChainConfig.sdkName,
     props.selectedChainConfig.key,
+    props.selectedChainConfig.displayName,
     props.selectedToken,
     props.tokenList,
     props.sourceToken,
-    props.selectedNonSDKChain,
     props.isSource,
     props.wallet?.address,
     balances,
