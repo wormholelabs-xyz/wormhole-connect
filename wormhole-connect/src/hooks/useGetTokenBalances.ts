@@ -82,7 +82,9 @@ const useGetTokenBalances = (
               lastUpdated: now,
             };
 
-            tokenAddresses.push(token.address);
+            if (!token.isUnattested) {
+              tokenAddresses.push(token.address);
+            }
           }
 
           if (tokenAddresses.length === 0) {
