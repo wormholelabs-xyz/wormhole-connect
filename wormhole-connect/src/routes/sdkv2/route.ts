@@ -81,6 +81,14 @@ export class SDKv2Route {
       return false;
     }
 
+    if (
+      this.rc.meta.name === 'MonadBridge' &&
+      sourceToken.isTokenBridgeWrappedToken
+    ) {
+      // Prevent double wrapping
+      return false;
+    }
+
     const supportedDestinationTokens = await this.rc.supportedDestinationTokens(
       sourceToken,
       fromContext.context,
@@ -112,6 +120,14 @@ export class SDKv2Route {
       if (this.isIlliquidDestToken(sourceToken, toChain)) {
         return [];
       }
+    }
+
+    if (
+      this.rc.meta.name === 'MonadBridge' &&
+      sourceToken?.isTokenBridgeWrappedToken
+    ) {
+      // Prevent double wrapping
+      return [];
     }
 
     const fromContext = await this.getV2ChainContext(fromChain);
