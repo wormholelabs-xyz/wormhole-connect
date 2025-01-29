@@ -191,7 +191,7 @@ export const TESTNET_CHAINS: ChainsConfig = {
   Monad: {
     ...chains.Monad!,
     displayName: 'Monad',
-    explorerUrl: 'https://explorer.monad-testnet.category.xyz/',
+    explorerUrl: 'https://testnet.monadexplorer.com/',
     explorerName: 'Monad Explorer',
     chainId: 10143,
     icon: 'Monad',
