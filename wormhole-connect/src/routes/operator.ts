@@ -179,7 +179,6 @@ export default class RouteOperator {
           );
 
           for (const token of destTokenIds) {
-            // supported.add(tokenKey(token));
             supported.add(token, token);
           }
         }
