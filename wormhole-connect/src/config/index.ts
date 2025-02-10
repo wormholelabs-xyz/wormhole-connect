@@ -149,7 +149,6 @@ export function buildConfig(
         if (bi === -1) return -1;
         return 0;
       }),
-    nonSDKChains: networkData.nonSDKChains,
     tokens,
     tokenWhitelist: customConfig.tokens,
 

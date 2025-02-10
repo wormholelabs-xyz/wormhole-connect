@@ -86,7 +86,9 @@ export class HyperliquidRoute<N extends Network>
 
   // Get the list of chains this route supports
   static supportedChains(network: Network): Chain[] {
-    return MayanRouteSWIFT.supportedChains(network);
+    return ['Hyperliquid' as Chain].concat(
+      MayanRouteSWIFT.supportedChains(network),
+    );
   }
 
   // Get the list of source tokens that are possible to send
@@ -122,6 +124,10 @@ export class HyperliquidRoute<N extends Network>
     request: routes.RouteTransferRequest<N>,
     params: Vp,
   ): Promise<QR> {
+    if (request.toChain.chain !== 'Hyperliquid') {
+      throw new Error('Can only transfer into Hyperliquid');
+    }
+
     const quoteResult = await this.mayanRoute.quote(request, params);
     const minRequiredOut = amount.whole(MIN_AMOUNT_REQUIRED);
     if (
@@ -140,6 +146,7 @@ export class HyperliquidRoute<N extends Network>
       };
     }
 
+    /* @ts-ignore */
     return quoteResult;
   }
 
@@ -159,6 +166,7 @@ export class HyperliquidRoute<N extends Network>
     return (await this.mayanRoute.initiate(
       request,
       signer,
+      /* @ts-ignore */
       quote,
       to,
     )) as routes.Receipt;
