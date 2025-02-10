@@ -124,11 +124,17 @@ export class HyperliquidRoute<N extends Network>
     request: routes.RouteTransferRequest<N>,
     params: Vp,
   ): Promise<QR> {
+    const firstHop: routes.RouteTransferRequest<N> = {
+      ...request,
+      /* @ts-ignore */
+      toChain: this.wh.getChain('Arbitrum'),
+    };
+
     if (request.toChain.chain !== 'Hyperliquid') {
       throw new Error('Can only transfer into Hyperliquid');
     }
 
-    const quoteResult = await this.mayanRoute.quote(request, params);
+    const quoteResult = await this.mayanRoute.quote(firstHop, params);
     const minRequiredOut = amount.whole(MIN_AMOUNT_REQUIRED);
     if (
       quoteResult.success &&

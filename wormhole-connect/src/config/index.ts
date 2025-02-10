@@ -199,7 +199,7 @@ export async function newWormholeContextV2(): Promise<WormholeV2<Network>> {
 
   for (const key in config.chains) {
     const chain = key as Chain;
-    const rpc = config.rpcs[chain];
+    const rpc = config.rpcs[chain === 'Hyperliquid' ? 'Arbitrum' : chain];
     const tokenMap: SDKChainTokens = {};
 
     for (const token of config.tokens.getAllForChain(chain)) {
