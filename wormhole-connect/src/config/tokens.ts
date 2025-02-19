@@ -363,7 +363,7 @@ export class TokenCache extends TokenMapping<Token> {
   async addFromTokenId(tokenId: TokenId): Promise<Token> {
     if (isUnattestedTokenId(tokenId)) {
       const original = this.get(tokenId.originalTokenId);
-      console.log(`Token ${tokenId} is unattested`);
+      console.debug(`Token ${tokenId} is unattested`);
 
       // An unattested token does not yet exist on-chain,
       // so we use the original token's metadata

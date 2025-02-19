@@ -136,7 +136,7 @@ const TESTNET_CONFIG: WormholeConfig = {
     Mantle: 'https://rpc.sepolia.mantle.xyz',
     Worldchain: 'https://worldchain-sepolia.g.alchemy.com/public',
     Unichain: 'https://sepolia.unichain.org',
-    Monad: 'https://rpc.ankr.com/monad', // TODO: add default
+    Monad: 'https://testnet-rpc.monad.xyz',
   },
   chains: TESTNET,
 };
