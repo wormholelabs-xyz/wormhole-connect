@@ -6,10 +6,8 @@ import './App.css';
 import { RootState } from './store';
 import { clearRedeem } from './store/redeem';
 import { clearTransfer } from './store/transferInput';
-import { isEmptyObject, usePrevious } from './utils';
-import { WormholeConnectConfig } from './config/types';
-import { setConfig } from './config';
-import config from './config';
+import { usePrevious } from './utils';
+import { useConfig } from './contexts/ConfigContext';
 
 import Terms from './views/Terms';
 import TxSearch from './views/TxSearch';
@@ -38,30 +36,18 @@ const useStyles = makeStyles()((theme: any) => ({
   },
 }));
 
-interface Props {
-  config?: WormholeConnectConfig;
-}
-
 // since this will be embedded, we'll have to use pseudo routes instead of relying on the url
-function AppRouter(props: Props) {
+function AppRouter() {
   const { classes } = useStyles();
   const dispatch = useDispatch();
   const routeContext = useContext(RouteContext);
+  const { config } = useConfig();
 
-  // We update the global config once when WormholeConnect is first mounted, if a custom
-  // config was provided.
-  //
-  // We don't allow config changes afterwards because they could lead to lots of
-  // broken and undesired behavior.
+  // Initial load event
   React.useEffect(() => {
-    if (!isEmptyObject(props.config)) {
-      setConfig(props.config);
-      dispatch(clearTransfer());
-    }
-
     config.triggerEvent({
       type: 'load',
-      config: props.config,
+      config,
     });
   }, []);
 

@@ -11,7 +11,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import type { RootState } from 'store';
 
 import Button from 'components/v2/Button';
-import config from 'config';
+import { useConfig } from 'contexts/ConfigContext';
 import { joinClass } from 'utils/style';
 import PoweredByIcon from 'icons/PoweredBy';
 import PageHeader from 'components/PageHeader';
@@ -108,6 +108,7 @@ const Bridge = () => {
   const { classes } = useStyles();
   const theme = useTheme();
   const dispatch = useDispatch();
+  const { config } = useConfig();
 
   const { lastTokenCacheUpdate } = useTokens();
 
@@ -246,7 +247,7 @@ const Bridge = () => {
     } else {
       return [];
     }
-  }, [sourceChain, lastTokenCacheUpdate]);
+  }, [sourceChain, lastTokenCacheUpdate, config.tokens]);
 
   // Supported chains for the source network
   const supportedSourceChains = useMemo(() => {
