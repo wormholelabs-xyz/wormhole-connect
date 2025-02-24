@@ -8,6 +8,9 @@ import {
   amount as sdkAmount,
   TokenId,
   Network,
+  ChainContext,
+  Wormhole,
+  isSameToken,
 } from '@wormhole-foundation/sdk';
 
 import SDKv2Route from './sdkv2';
@@ -359,6 +362,14 @@ export class MonadBridgeRoute<N extends Network>
     name: 'MonadBridge',
   };
 
+  static tokenDenyList: TokenId[] = [
+    // These tokens have Wormhole versions deployed, so allow users to bridge those instead of these
+    Wormhole.tokenId('Monad', '0xf817257fed379853cDe0fa4F97AB987181B1E5Ea'), // USDC
+    Wormhole.tokenId('Monad', '0x88b8E2161DEDC77EF4ab7585569D2415a1C1055D'), // USDT
+    Wormhole.tokenId('Monad', '0xcf5a6076cfa32686c0Df13aBaDa2b40dec133F1d'), // WBTC
+    Wormhole.tokenId('Monad', '0xB5a30b0FDc5EA94A52fDc42e3E9760Cb8449Fb37'), // WETH
+  ];
+
   static override config: MultiTokenNttRoute.Config = {
     contracts: [
       {
@@ -379,4 +390,18 @@ export class MonadBridgeRoute<N extends Network>
       },
     ],
   };
+
+  static override async supportedDestinationTokens<N extends Network>(
+    sourceToken: TokenId,
+    fromChain: ChainContext<N>,
+    toChain: ChainContext<N>,
+  ): Promise<TokenId[]> {
+    if (
+      MonadBridgeRoute.tokenDenyList.some((t) => isSameToken(t, sourceToken))
+    ) {
+      return [];
+    }
+
+    return super.supportedDestinationTokens(sourceToken, fromChain, toChain);
+  }
 }
