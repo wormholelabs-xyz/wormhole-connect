@@ -377,7 +377,7 @@ export const TESTNET_TOKENS: TokenConfig[] = [
     },
   },
   {
-    symbol: 'USDC',
+    symbol: 'wUSDC',
     icon: TokenIcon.USDC,
     decimals: 6,
     tokenId: {
@@ -386,7 +386,7 @@ export const TESTNET_TOKENS: TokenConfig[] = [
     },
   },
   {
-    symbol: 'USDT',
+    symbol: 'wUSDT',
     icon: TokenIcon.USDT,
     decimals: 6,
     tokenId: {
@@ -395,7 +395,7 @@ export const TESTNET_TOKENS: TokenConfig[] = [
     },
   },
   {
-    symbol: 'WETH',
+    symbol: 'wWETH',
     icon: TokenIcon.ETH,
     decimals: 18,
     tokenId: {
@@ -404,7 +404,7 @@ export const TESTNET_TOKENS: TokenConfig[] = [
     },
   },
   {
-    symbol: 'WBTC',
+    symbol: 'wWBTC',
     icon: TokenIcon.WBTC,
     decimals: 8,
     tokenId: {
