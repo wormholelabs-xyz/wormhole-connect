@@ -376,4 +376,40 @@ export const TESTNET_TOKENS: TokenConfig[] = [
       address: '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701',
     },
   },
+  {
+    symbol: 'USDC',
+    icon: TokenIcon.USDC,
+    decimals: 6,
+    tokenId: {
+      chain: 'Monad',
+      address: '0x4804916f7c16c20E1a557feb8E3E29418DDC54DC',
+    },
+  },
+  {
+    symbol: 'USDT',
+    icon: TokenIcon.USDT,
+    decimals: 6,
+    tokenId: {
+      chain: 'Monad',
+      address: '0x72111141639bfAa9A1Ad7A638F546e2397f0dc7a',
+    },
+  },
+  {
+    symbol: 'WETH',
+    icon: TokenIcon.ETH,
+    decimals: 18,
+    tokenId: {
+      chain: 'Monad',
+      address: '0xA296f47E8Ff895Ed7A092b4a9498bb13C46ac768',
+    },
+  },
+  {
+    symbol: 'WBTC',
+    icon: TokenIcon.WBTC,
+    decimals: 8,
+    tokenId: {
+      chain: 'Monad',
+      address: '0x5B3540B0a48F8b30A655402eE5dcD213fd2B4BEa',
+    },
+  },
 ];
