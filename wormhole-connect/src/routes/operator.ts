@@ -397,6 +397,7 @@ export class MonadBridgeRoute<N extends Network>
     toChain: ChainContext<N>,
   ): Promise<TokenId[]> {
     if (
+      fromChain.network === 'Testnet' &&
       MonadBridgeRoute.tokenDenyList.some((t) => isSameToken(t, sourceToken))
     ) {
       return [];
