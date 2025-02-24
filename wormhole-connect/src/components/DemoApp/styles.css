@@ -36,10 +36,6 @@ article {
   flex-grow: 2;
 }
 
-header {
-  border-bottom: 1px solid #444;
-}
-
 header > div {
   padding: 5px;
   display: flex;
@@ -64,6 +60,7 @@ header h1 {
 aside {
   box-shadow: 0px 0px 7px 4px #0000003b;
   background: black;
+  border-left: 1px solid #444;
 }
 
 #custom-config {
