@@ -231,7 +231,10 @@ const useTransactionHistoryMayan = (
 };
 
 function parseMayanAddress<C extends Chain>(chain: C, addr: string): TokenId {
-  if (addr === '0x0000000000000000000000000000000000000000') {
+  if (
+    addr === '0x0000000000000000000000000000000000000000' ||
+    addr === '0x2::sui::SUI'
+  ) {
     return { chain, address: 'native' };
   }
   const corrected = toNative(chain, addr);
