@@ -1,0 +1,51 @@
+name: Bundle Size Check
+
+on:
+  pull_request:
+    paths:
+      - 'wormhole-connect/**'
+
+jobs:
+  check-bundle-size:
+    name: Check bundle size
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./wormhole-connect
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./wormhole-connect/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and analyze bundle
+        run: npm run analyze:ci
+
+      - name: Check bundle sizes
+        run: |
+          MAX_CHUNK_SIZE=$((1024 * 1024)) # 1MB in bytes
+          LARGE_CHUNKS=$(jq -r '.chunks[] | select(.size > '$MAX_CHUNK_SIZE') | "\(.name): \(.size/1024/1024)MB"' stats.json)
+          
+          if [ ! -z "$LARGE_CHUNKS" ]; then
+            echo "::warning ::The following chunks are larger than 1MB:"
+            echo "$LARGE_CHUNKS"
+            echo "Consider code splitting or optimizing these chunks."
+            # In the future, uncomment the following line to make this check fail:
+            # exit 1
+          else
+            echo "All chunks are within size limits!"
+          fi
+
+      - name: Upload bundle stats
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-stats
+          path: wormhole-connect/stats.json
