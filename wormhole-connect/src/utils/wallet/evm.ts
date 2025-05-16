@@ -1,4 +1,4 @@
-import { Wallet, NotSupported } from '@xlabs-libs/wallet-aggregator-core';
+import { Wallet, NotSupported } from '@wormhole-labs/wallet-aggregator-core';
 import {
   EVMWallet,
   Eip6963Wallet,
@@ -7,7 +7,7 @@ import {
   InjectedWallets,
   WalletConnectWallet,
   DEFAULT_CHAINS,
-} from '@xlabs-libs/wallet-aggregator-evm';
+} from '@wormhole-labs/wallet-aggregator-evm';
 
 import {
   EvmUnsignedTransaction,
