@@ -264,10 +264,6 @@
     "react-infinite-scroller": {
       "react": ">=18.0.0",
       "react-dom": ">=18.0.0"
-    },
-    "@wormhole-labs/wallet-aggregator-evm": {
-      "react": ">=18.0.0",
-      "react-dom": ">=18.0.0"
     }
   }
 }
