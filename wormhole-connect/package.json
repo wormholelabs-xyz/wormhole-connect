@@ -264,6 +264,10 @@
     "react-infinite-scroller": {
       "react": ">=18.0.0",
       "react-dom": ">=18.0.0"
+    },
+    "@msafe/aptos-aip62-wallet": {
+      "@aptos-labs/ts-sdk": "2.0.0",
+      "@aptos-labs/wallet-adapter-core": "5.5.0"
     }
   }
 }
