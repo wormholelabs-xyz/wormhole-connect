@@ -72,7 +72,6 @@ export const connectWallet = async (
   const { chainId, context } = chainConfig;
 
   try {
-    debugger;
     await wallet.connect({ chainId });
   } catch (e: any) {
     if (e.message && e.message.toLowerCase().includes('rejected')) {
