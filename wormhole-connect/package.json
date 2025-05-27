@@ -30,6 +30,11 @@
       "require": "./lib/executor.js",
       "import": "./lib/executor.mjs",
       "types": "./lib/executor.d.ts"
+    },
+    "./monad": {
+      "require": "./lib/monad.js",
+      "import": "./lib/monad.mjs",
+      "types": "./lib/monad.d.ts"
     }
   },
   "files": [
