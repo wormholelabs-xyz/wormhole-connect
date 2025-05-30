@@ -12,9 +12,11 @@ import {
   Network,
   NativeAddress,
 } from '@wormhole-foundation/sdk';
-import { getWormholeContextV2 } from 'config';
+import config, { getWormholeContextV2 } from 'config';
 import { Contract } from 'ethers';
 import { SuiClient } from '@mysten/sui/client';
+import { WETH_CONTRACTS } from '@wormhole-foundation/sdk-evm';
+import { NATIVE_MINT } from '@solana/spl-token';
 
 interface TokenMetadataFromRpc {
   symbol: string;
@@ -115,4 +117,22 @@ export async function getTokenMetadataSui(
     console.error(e);
     return undefined;
   }
+}
+
+// returns true if the token is the wrapped gas token for the chain
+// only applicable for EVM and Solana chains
+export function isWrappedNativeToken(tokenId: TokenId): boolean {
+  const platform = chainToPlatform(tokenId.chain);
+  if (platform === 'Evm') {
+    return (
+      tokenId.address.toString() ===
+      WETH_CONTRACTS[config.network]?.[tokenId.chain]
+    );
+  }
+
+  if (platform === 'Solana') {
+    return tokenId.address.toString() === NATIVE_MINT.toString();
+  }
+
+  return false;
 }

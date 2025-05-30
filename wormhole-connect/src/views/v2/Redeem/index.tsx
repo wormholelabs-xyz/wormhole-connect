@@ -22,6 +22,9 @@ import {
   isFailed,
   routes,
   isNative,
+  chainToPlatform,
+  Network,
+  amount as sdkAmount,
 } from '@wormhole-foundation/sdk';
 import { getTokenDetails, getTransferDetails } from 'telemetry';
 import { makeStyles } from 'tss-react/mui';
@@ -30,7 +33,7 @@ import AlertBannerV2 from 'components/v2/AlertBanner';
 import PageHeader from 'components/PageHeader';
 import { Alignment } from 'components/Header';
 import Button from 'components/v2/Button';
-import config from 'config';
+import config, { getWormholeContextV2 } from 'config';
 import { RouteContext } from 'contexts/RouteContext';
 import useTrackTransfer from 'hooks/useTrackTransfer';
 import PoweredByIcon from 'icons/PoweredBy';
@@ -47,7 +50,7 @@ import {
   millisToMinutesAndSeconds,
   minutesAndSecondsWithPadding,
 } from 'utils/transferValidation';
-import { TransferWallet } from 'utils/wallet';
+import { signAndSendTransaction, TransferWallet } from 'utils/wallet';
 import TransactionDetails from 'views/v2/Redeem/TransactionDetails';
 import WalletSidebar from 'views/v2/Bridge/WalletConnector/Sidebar';
 import { useConnectToLastUsedWallet } from 'utils/wallet';
@@ -64,6 +67,8 @@ import { tokenIdFromTuple } from 'config/tokens';
 import { clearRedeem } from 'store/redeem';
 import { setSearch } from 'store/search';
 import { isExecutorRoute } from 'utils';
+import { EvmPlatform } from '@wormhole-foundation/sdk-evm';
+import { isWrappedNativeToken } from 'utils/tokens';
 
 const useStyles = makeStyles()((theme: any) => ({
   spacer: {
@@ -702,6 +707,23 @@ const Redeem = () => {
     setClaimError('');
     setUnhandledManualClaimError(undefined);
 
+    if (
+      txData?.receiveAmount &&
+      isConnectedToReceivingWallet &&
+      isWrappedNativeToken(tokenIdFromTuple(receivedToken))
+    ) {
+      const context = await getWormholeContextV2();
+      const platform = (await context.getPlatform(
+        chainToPlatform(toChain),
+      )) as EvmPlatform<Network>;
+      const tx = await platform.unwrapNativeToken(
+        'Ethereum',
+        sdkAmount.units(txData.receiveAmount),
+        receivingWallet.address,
+      );
+      await signAndSendTransaction(toChain, tx, TransferWallet.RECEIVING);
+    }
+
     if (!routeName) {
       throw new Error('Unknown route, can not claim');
     }
@@ -870,6 +892,26 @@ const Redeem = () => {
           </Button>
         );
       }
+    }
+
+    // TODO: if NTT and received a wrapped token, then add button to unwrap
+    if (
+      receivedToken &&
+      isWrappedNativeToken(tokenIdFromTuple(receivedToken))
+    ) {
+      // const tokenDetails = config.tokens.mustGet(receivedToken);
+      // const symbol = tokenDetails.symbol;
+      return (
+        <Button
+          variant="primary"
+          className={classes.actionButton}
+          onClick={handleUnwrapClick}
+        >
+          <Typography textTransform="none">
+            Unwrap {symbol} to complete transfer
+          </Typography>
+        </Button>
+      );
     }
 
     return (

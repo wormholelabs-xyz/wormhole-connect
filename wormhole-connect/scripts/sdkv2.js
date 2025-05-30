@@ -4,15 +4,15 @@ const path = require('path');
 const WORK_ROOT = process.env['WORK_ROOT'];
 
 const thirdPartyPkgs = {
-  '@mayanfinance/wormhole-sdk-route': 'wormhole-sdk-route',
-  '@wormhole-foundation/sdk-definitions-ntt':
-    'example-native-token-transfers/sdk/definitions',
-  '@wormhole-foundation/sdk-route-ntt':
-    'example-native-token-transfers/sdk/route',
-  '@wormhole-foundation/sdk-solana-ntt':
-    'example-native-token-transfers/solana',
-  '@wormhole-foundation/sdk-evm-ntt': 'example-native-token-transfers/evm/ts',
-  ntt: 'example-native-token-transfers',
+  //'@mayanfinance/wormhole-sdk-route': 'wormhole-sdk-route',
+  //'@wormhole-foundation/sdk-definitions-ntt':
+  //  'example-native-token-transfers/sdk/definitions',
+  //'@wormhole-foundation/sdk-route-ntt':
+  //  'example-native-token-transfers/sdk/route',
+  //'@wormhole-foundation/sdk-solana-ntt':
+  //  'example-native-token-transfers/solana',
+  //'@wormhole-foundation/sdk-evm-ntt': 'example-native-token-transfers/evm/ts',
+  //ntt: 'example-native-token-transfers',
 };
 
 if (!WORK_ROOT) {
