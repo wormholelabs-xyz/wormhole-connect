@@ -25,27 +25,30 @@ export const useAmountValidation = (props: Props): HookReturn => {
   // Min amount available
   const minAmount = useMemo(
     () =>
-      Object.values(props.quotes).reduce((minAmount, quoteResult) => {
-        if (quoteResult?.success) {
-          return minAmount;
-        }
+      Object.values(props.quotes).reduce(
+        (minAmount, quoteResult) => {
+          if (quoteResult?.success) {
+            return minAmount;
+          }
 
-        if (!isMinAmountError(quoteResult?.error)) {
-          return minAmount;
-        }
+          if (!isMinAmountError(quoteResult?.error)) {
+            return minAmount;
+          }
 
-        if (!minAmount) {
-          return quoteResult.error.min;
-        }
+          if (!minAmount) {
+            return quoteResult.error.min;
+          }
 
-        const minAmountNum = BigInt(quoteResult.error.min.amount);
-        const existingMin = BigInt(minAmount.amount);
-        if (minAmountNum < existingMin) {
-          return quoteResult.error.min;
-        } else {
-          return minAmount;
-        }
-      }, undefined as sdkAmount.Amount | undefined),
+          const minAmountNum = BigInt(quoteResult.error.min.amount);
+          const existingMin = BigInt(minAmount.amount);
+          if (minAmountNum < existingMin) {
+            return quoteResult.error.min;
+          } else {
+            return minAmount;
+          }
+        },
+        undefined as sdkAmount.Amount | undefined,
+      ),
     [props.quotes],
   );
 
@@ -59,8 +62,12 @@ export const useAmountValidation = (props: Props): HookReturn => {
     });
   }, [props.routes, props.quotes]);
 
+  const noRoutes = useMemo(() => {
+    return props.routes.length === 0;
+  }, [props.routes]);
+
   // Don't show errors when no amount is set or it's loading
-  if (!amount || props.disabled) {
+  if (!amount || props.disabled || props.isLoading) {
     return {};
   }
 
@@ -71,6 +78,12 @@ export const useAmountValidation = (props: Props): HookReturn => {
         error: 'Amount exceeds available balance.',
       };
     }
+  }
+
+  if (noRoutes) {
+    return {
+      error: 'No routes found for this transaction.',
+    };
   }
 
   if (allRoutesFailed) {
