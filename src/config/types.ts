@@ -196,6 +196,8 @@ export interface InternalConfig<N extends Network> {
   guardianSet: GuardianSetData;
 
   transactionSettings: TransactionSettings;
+
+  locale?: string;
 }
 
 export type TokenConfig = {
