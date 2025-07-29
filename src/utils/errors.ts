@@ -26,6 +26,8 @@ export const USER_REJECTED_REGEX = new RegExp(
   'mi',
 );
 export const AMOUNT_IN_TOO_SMALL = new RegExp('AmountInTooSmall', 'm');
+export const ACCOUNT_NOT_FOUND_REGEX = /AccountNotFound/im;
+export const SIMULATION_FAILED_REGEX = /Simulation failed.*AccountNotFound/im;
 
 export function interpretTransferError(
   e: any,
@@ -85,6 +87,19 @@ export function interpretTransferError(
         uiErrorMessage += ` Current balance is ${sdkAmount.display(
           currentAmount,
         )} SOL, but required ${sdkAmount.display(requiredAmount)} SOL`;
+      }
+      internalErrorCode = ERR_INSUFFICIENT_GAS;
+    } else if (
+      ACCOUNT_NOT_FOUND_REGEX.test(e?.message) ||
+      SIMULATION_FAILED_REGEX.test(e?.message)
+    ) {
+      // AccountNotFound typically indicates low SOL balance for gas fees on Solana
+      if (transferDetails.fromChain === 'Solana') {
+        uiErrorMessage =
+          'Insufficient SOL balance for transaction fees. Please add SOL to your wallet and try again.';
+      } else {
+        uiErrorMessage =
+          'Account not found. Please ensure your wallet has sufficient balance for gas fees.';
       }
       internalErrorCode = ERR_INSUFFICIENT_GAS;
     }

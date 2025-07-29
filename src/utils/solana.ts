@@ -302,6 +302,23 @@ function checkKnownSimulationError(
       'Blockhash not found during simulation. Trying again.';
   }
 
+  // AccountNotFound typically indicates insufficient SOL balance for gas fees
+  // Don't retry for this error as it won't resolve without user action
+  if (
+    response.err &&
+    typeof response.err === 'object' &&
+    'InstructionError' in response.err
+  ) {
+    const instructionError = response.err.InstructionError;
+    if (
+      Array.isArray(instructionError) &&
+      instructionError[1] === 'AccountNotFound'
+    ) {
+      // Return false to not retry - this needs user action
+      return false;
+    }
+  }
+
   // Check the response logs for any known errors
   if (response.logs) {
     for (const line of response.logs) {
