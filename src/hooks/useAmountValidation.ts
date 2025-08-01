@@ -59,7 +59,9 @@ export const useAmountValidation = (props: Props): AmountValidationResult => {
   }, [props.quotes, props.failedQuotes]);
 
   // Don't show errors when no amount is set or it's loading
-  if (!amount || props.disabled) {
+  // TESTING: Disable amount validation
+  const TEST_MODE = true;
+  if (!amount || props.disabled || TEST_MODE) {
     return {};
   }
 
