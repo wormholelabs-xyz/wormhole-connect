@@ -125,11 +125,10 @@ const Routes = ({ ...props }: Props) => {
         }
       }
 
-      for (const manualRoute of manualRoutes) {
-        if (!topRoutes.includes(manualRoute)) {
-          topRoutes.push(manualRoute);
-        }
-      }
+      // Add manual routes that aren't already in topRoutes
+      const uniqueRoutes = [...new Set([...topRoutes, ...manualRoutes])];
+      topRoutes.length = 0;
+      topRoutes.push(...uniqueRoutes);
 
       return topRoutes;
     }
@@ -143,11 +142,12 @@ const Routes = ({ ...props }: Props) => {
       defaultRoutes.push(cheapestRoute.name);
     }
 
-    for (const manualRoute of manualRoutes) {
-      if (!defaultRoutes.includes(manualRoute)) {
-        defaultRoutes.push(manualRoute);
-      }
-    }
+    // Always include manual routes in the default view
+    const uniqueDefaultRoutes = [
+      ...new Set([...defaultRoutes, ...manualRoutes]),
+    ];
+    defaultRoutes.length = 0;
+    defaultRoutes.push(...uniqueDefaultRoutes);
 
     if (defaultRoutes.length === 0 && routes.length > 0) {
       return routes.slice(0, 1);
