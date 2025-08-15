@@ -202,7 +202,9 @@ const Bridge = () => {
         (rs) => rs.route === autoselectedRoute,
       );
 
-      if (routeData) dispatch(setTransferRoute(routeData.route));
+      if (routeData) {
+        dispatch(setTransferRoute(routeData.route));
+      }
     }
   }, [preferredRouteName, route, sortedRoutesWithQuotes, dispatch]);
 

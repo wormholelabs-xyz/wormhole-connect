@@ -6,6 +6,10 @@ import memoize from 'fast-memoize';
 
 import type { Chain, TransactionId, TokenId } from '@wormhole-foundation/sdk';
 import { routes, amount as sdkAmount } from '@wormhole-foundation/sdk';
+import {
+  cctpV2StandardExecutorRoute,
+  cctpV2FastExecutorRoute,
+} from 'exports/executor';
 
 import SDKv2Route from './sdkv2';
 
@@ -19,8 +23,10 @@ export type QuoteResult = routes.QuoteResult<routes.Options>;
 type forEachCallback<T> = (name: string, route: SDKv2Route) => T;
 
 export const DEFAULT_ROUTES = [
-  routes.AutomaticCCTPRoute,
-  routes.CCTPRoute,
+  routes.AutomaticCCTPRoute, // CCTP v1 automatic
+  routes.CCTPRoute, // CCTP v1 manual
+  cctpV2FastExecutorRoute() as routes.RouteConstructor, // CCTPv2 automatic/fast
+  cctpV2StandardExecutorRoute() as routes.RouteConstructor, // CCTPv2 manual/standard
   routes.AutomaticTokenBridgeRoute,
   routes.TokenBridgeRoute,
   routes.TBTCRoute,
