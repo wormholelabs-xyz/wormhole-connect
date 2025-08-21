@@ -1,0 +1,2 @@
+overrides:
+  '@wormhole-foundation/sdk': link:../wormhole-sdk-ts/sdk

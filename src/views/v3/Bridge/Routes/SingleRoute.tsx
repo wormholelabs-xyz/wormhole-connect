@@ -31,7 +31,8 @@ import RouteBadge from './RouteBadge';
 import TimeToDestination from './TimeToDestination';
 import ProviderWithAmount from './ProviderWithAmount';
 
-const HIGH_FEE_THRESHOLD = 20; // dollhairs
+const HIGH_FEE_THRESHOLD = 30; // USD threshold for showing warning
+const OUTPUT_DIFFERENCE_THRESHOLD = 0.3; // 30% difference threshold
 
 type Props = {
   route: string;
@@ -114,20 +115,36 @@ const SingleRoute = (props: Props) => {
   });
 
   const isHighFee = useMemo(() => {
-    if (!quote?.relayFee) {
+    if (!quote || !sourceToken) {
       return false;
     }
 
-    const relayFee = amount.whole(quote.relayFee.amount);
-    const feeToken = config.tokens.get(quote.relayFee.token);
-    const feePrice = calculateUSDPriceRaw(getTokenPrice, relayFee, feeToken);
+    // Check if output is significantly less than input (percentage-based)
+    const inputAmount = amount.units(quote.sourceToken.amount);
+    const outputAmount = amount.units(quote.destinationToken.amount);
 
-    if (feePrice === undefined) {
-      return false;
+    // Calculate percentage difference
+    if (inputAmount > 0n) {
+      const difference =
+        Number(inputAmount - outputAmount) / Number(inputAmount);
+      if (difference > OUTPUT_DIFFERENCE_THRESHOLD) {
+        return true;
+      }
     }
 
-    return feePrice > HIGH_FEE_THRESHOLD;
-  }, [getTokenPrice, quote?.relayFee]);
+    // Also check absolute fee amount if relay fee is present
+    if (quote.relayFee) {
+      const relayFee = amount.whole(quote.relayFee.amount);
+      const feeToken = config.tokens.get(quote.relayFee.token);
+      const feePrice = calculateUSDPriceRaw(getTokenPrice, relayFee, feeToken);
+
+      if (feePrice !== undefined && feePrice > HIGH_FEE_THRESHOLD) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [getTokenPrice, quote, sourceToken]);
 
   const destinationGas = useMemo(() => {
     if (
