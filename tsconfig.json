@@ -28,6 +28,7 @@
     "sourceMap": true,
     "target": "es2022",
     "strict": true,
-    "jsx": "react"
+    "jsx": "react",
+    "typeRoots": ["./node_modules/@types"]
   }
 }
